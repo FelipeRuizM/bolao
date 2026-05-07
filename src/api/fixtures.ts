@@ -1,4 +1,4 @@
-import { ref, set } from 'firebase/database'
+import { get, ref, set } from 'firebase/database'
 import { db } from '@/firebase'
 import type { Match, Stage } from '@/types'
 
@@ -83,5 +83,16 @@ export async function importFixturesToFirebase(): Promise<{ count: number }> {
   const indexed: Record<string, Match> = {}
   for (const m of matches) indexed[m.id] = m
   await set(ref(db, 'matches'), indexed)
+
+  // Initialize the bonus-pick lock to the earliest kickoff if not already set.
+  // Admin can override later via /meta/config/lockBonusAt.
+  if (matches.length > 0) {
+    const existing = await get(ref(db, 'meta/config/lockBonusAt'))
+    if (!existing.exists()) {
+      const earliest = Math.min(...matches.map((m) => m.kickoffAt))
+      await set(ref(db, 'meta/config/lockBonusAt'), earliest)
+    }
+  }
+
   return { count: matches.length }
 }

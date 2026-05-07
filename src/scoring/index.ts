@@ -16,6 +16,47 @@ export const DEFAULT_POINTS: PointValues = {
   outcome: 1,
 }
 
+export interface BonusValues {
+  tournamentWinner: number
+  topScorer: number
+}
+
+export const DEFAULT_BONUS_VALUES: BonusValues = {
+  tournamentWinner: 20,
+  topScorer: 15,
+}
+
+export interface BonusAnswers {
+  tournamentWinner?: string
+  topScorer?: string
+}
+
+export function normalizeBonusAnswer(s: string | undefined | null): string {
+  if (!s) return ''
+  return s
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export function computeBonusPoints(
+  pick: { tournamentWinner?: string; topScorer?: string },
+  answers: BonusAnswers,
+  values: BonusValues = DEFAULT_BONUS_VALUES,
+): { tournamentWinner: number; topScorer: number; total: number } {
+  const winnerOk =
+    !!answers.tournamentWinner &&
+    normalizeBonusAnswer(pick.tournamentWinner) === normalizeBonusAnswer(answers.tournamentWinner)
+  const scorerOk =
+    !!answers.topScorer &&
+    normalizeBonusAnswer(pick.topScorer) === normalizeBonusAnswer(answers.topScorer)
+  const tw = winnerOk ? values.tournamentWinner : 0
+  const ts = scorerOk ? values.topScorer : 0
+  return { tournamentWinner: tw, topScorer: ts, total: tw + ts }
+}
+
 export const STAGE_MULTIPLIERS: Record<Stage, number> = {
   group: 1,
   r32: 1,

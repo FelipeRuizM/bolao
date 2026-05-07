@@ -7,8 +7,9 @@ import { Login } from '@/pages/Login'
 import { Home } from '@/pages/Home'
 import { Matches } from '@/pages/Matches'
 import { MatchDetail } from '@/pages/MatchDetail'
+import { Me } from '@/pages/Me'
+import { Bonus } from '@/pages/Bonus'
 import { Admin } from '@/pages/Admin'
-import { Me, Bonus } from '@/pages/Placeholders'
 
 export default function App() {
   return (

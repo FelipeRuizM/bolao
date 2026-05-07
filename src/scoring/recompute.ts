@@ -1,29 +1,46 @@
 import { get, ref, update } from 'firebase/database'
 import { db } from '@/firebase'
-import { computePoints, DEFAULT_POINTS, type PointValues } from './index'
-import type { Match, Prediction, UserScore } from '@/types'
+import {
+  computePoints,
+  computeBonusPoints,
+  DEFAULT_POINTS,
+  DEFAULT_BONUS_VALUES,
+  type BonusAnswers,
+  type BonusValues,
+  type PointValues,
+} from './index'
+import type { BonusPick, Match, Prediction, UserScore } from '@/types'
 
 interface UsersIndex {
   [uid: string]: { displayName?: string; email?: string; role?: string } | undefined
 }
 
 /**
- * Recompute every player's leaderboard total from the current state of
- * /matches and /predictions, and write to /scores/{uid}.
- * Cheap for small pools (~10 users × ~104 matches = ~1k evaluations).
+ * Recompute every player's leaderboard total from /matches, /predictions,
+ * and /bonusPicks (if /meta/config/bonusAnswers is set). Writes /scores.
  */
 export async function recomputeAllUserScores(): Promise<void> {
-  const [matchesSnap, predsSnap, configSnap, usersSnap] = await Promise.all([
+  const [matchesSnap, predsSnap, configSnap, usersSnap, bonusPicksSnap] = await Promise.all([
     get(ref(db, 'matches')),
     get(ref(db, 'predictions')),
-    get(ref(db, 'meta/config/pointValues')),
+    get(ref(db, 'meta/config')),
     get(ref(db, 'users')),
+    get(ref(db, 'bonusPicks')),
   ])
 
   const matches = (matchesSnap.val() ?? {}) as Record<string, Match>
   const allPreds = (predsSnap.val() ?? {}) as Record<string, Record<string, Prediction>>
-  const pointValues = (configSnap.val() as PointValues | null) ?? DEFAULT_POINTS
+  const config = (configSnap.val() ?? {}) as {
+    pointValues?: PointValues
+    bonusValues?: BonusValues
+    bonusAnswers?: BonusAnswers
+  }
   const users = (usersSnap.val() ?? {}) as UsersIndex
+  const bonusPicks = (bonusPicksSnap.val() ?? {}) as Record<string, BonusPick>
+
+  const pointValues = config.pointValues ?? DEFAULT_POINTS
+  const bonusValues = config.bonusValues ?? DEFAULT_BONUS_VALUES
+  const bonusAnswers = config.bonusAnswers ?? {}
 
   const updates: Record<string, UserScore> = {}
 
@@ -47,13 +64,17 @@ export async function recomputeAllUserScores(): Promise<void> {
       total += result.total
     }
 
-    updates[`scores/${uid}` as unknown as string] = { total, perMatch, bonusPts: 0 }
+    const myBonus = bonusPicks[uid]
+    let bonusPts = 0
+    if (myBonus) {
+      bonusPts = computeBonusPoints(myBonus, bonusAnswers, bonusValues).total
+      total += bonusPts
+    }
+
+    updates[`scores/${uid}`] = { total, perMatch, bonusPts }
   }
 
-  // Two-step: write each user score path under root with multi-path update.
-  const flat: Record<string, UserScore> = {}
-  for (const [k, v] of Object.entries(updates)) flat[k] = v
-  if (Object.keys(flat).length > 0) {
-    await update(ref(db), flat)
+  if (Object.keys(updates).length > 0) {
+    await update(ref(db), updates as unknown as Record<string, unknown>)
   }
 }

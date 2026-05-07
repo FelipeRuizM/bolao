@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useSync } from '@/hooks/useSync'
 import { submitPrediction } from '@/api/predictions'
 import { ScoreStepper } from '@/components/ScoreStepper'
+import { EveryonesPicks } from '@/components/EveryonesPicks'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { multiplierFor } from '@/scoring'
 import type { Match, Stage } from '@/types'
@@ -152,10 +153,20 @@ export function MatchDetail() {
       {isLocked && (
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
           <h2 className="font-semibold">{t('matchDetail.locked')}</h2>
+          {match.score && (
+            <div>
+              <p className="text-sm text-slate-400 mb-2">{t('matchDetail.actualResult')}</p>
+              <div className="flex items-center justify-center gap-4 text-3xl font-bold tabular-nums">
+                <span>{match.score.home}</span>
+                <span className="text-slate-500">–</span>
+                <span>{match.score.away}</span>
+              </div>
+            </div>
+          )}
           {hasPrediction ? (
             <div>
               <p className="text-sm text-slate-400 mb-2">{t('matchDetail.yourPick')}</p>
-              <div className="flex items-center justify-center gap-4 text-3xl font-bold tabular-nums">
+              <div className="flex items-center justify-center gap-4 text-2xl font-bold tabular-nums text-brand-500">
                 <span>{myPrediction!.home}</span>
                 <span className="text-slate-500">–</span>
                 <span>{myPrediction!.away}</span>
@@ -164,9 +175,10 @@ export function MatchDetail() {
           ) : (
             <p className="text-sm text-slate-400">{t('matchDetail.noPickSubmitted')}</p>
           )}
-          <p className="text-xs text-slate-500 italic">{t('matchDetail.othersPicksLater')}</p>
         </section>
       )}
+
+      {isLocked && <EveryonesPicks match={match} />}
     </div>
   )
 }
