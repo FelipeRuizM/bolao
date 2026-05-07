@@ -63,6 +63,14 @@ describe('multiplierFor', () => {
   it('non-Brazil final = 3x', () => {
     expect(multiplierFor('final', 'Argentina', 'France')).toBe(3)
   })
+
+  it('round of 32 (no Brazil) = 1x — admin can override via /meta/config', () => {
+    expect(multiplierFor('r32', 'Spain', 'Morocco')).toBe(1)
+  })
+
+  it('round of 32 with Brazil = 3x', () => {
+    expect(multiplierFor('r32', 'Brazil', 'Senegal')).toBe(3)
+  })
 })
 
 describe('computePoints integration', () => {

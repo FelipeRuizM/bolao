@@ -7,8 +7,5 @@ function Placeholder({ title }: { title: string }) {
   )
 }
 
-export const Matches = () => <Placeholder title="Matches" />
-export const MatchDetail = () => <Placeholder title="Match" />
 export const Me = () => <Placeholder title="My Picks" />
 export const Bonus = () => <Placeholder title="Bonus Picks" />
-export const Admin = () => <Placeholder title="Admin" />

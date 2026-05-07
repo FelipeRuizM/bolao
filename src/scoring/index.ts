@@ -18,6 +18,7 @@ export const DEFAULT_POINTS: PointValues = {
 
 export const STAGE_MULTIPLIERS: Record<Stage, number> = {
   group: 1,
+  r32: 1,
   r16: 1.5,
   qf: 2,
   sf: 2.5,
