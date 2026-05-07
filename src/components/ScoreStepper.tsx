@@ -1,3 +1,5 @@
+import { useT } from '@/i18n'
+
 interface Props {
   label: string
   value: number
@@ -7,11 +9,12 @@ interface Props {
 }
 
 export function ScoreStepper({ label, value, onChange, disabled = false, max = 20 }: Props) {
+  const t = useT()
   return (
     <div className="flex items-center gap-3 bg-slate-800 rounded-2xl p-3">
       <button
         type="button"
-        aria-label={`Decrease ${label} score`}
+        aria-label={t('scoreStepper.decrease', { label })}
         onClick={() => onChange(Math.max(0, value - 1))}
         disabled={disabled || value === 0}
         className="w-14 h-14 rounded-full bg-slate-700 text-3xl font-bold active:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
@@ -24,7 +27,7 @@ export function ScoreStepper({ label, value, onChange, disabled = false, max = 2
       </div>
       <button
         type="button"
-        aria-label={`Increase ${label} score`}
+        aria-label={t('scoreStepper.increase', { label })}
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={disabled || value === max}
         className="w-14 h-14 rounded-full bg-slate-700 text-3xl font-bold active:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"

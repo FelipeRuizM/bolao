@@ -3,22 +3,25 @@ import { useParams, Link } from 'react-router-dom'
 import { useMatch } from '@/hooks/useMatches'
 import { useMyPrediction } from '@/hooks/usePrediction'
 import { useAuth } from '@/hooks/useAuth'
+import { useSync } from '@/hooks/useSync'
 import { submitPrediction } from '@/api/predictions'
 import { ScoreStepper } from '@/components/ScoreStepper'
+import { useT, useLocale, bcp47 } from '@/i18n'
+import { multiplierFor } from '@/scoring'
 import type { Match, Stage } from '@/types'
 
-const STAGE_LABEL: Record<Stage, string> = {
-  group: 'Group stage',
-  r32: 'Round of 32',
-  r16: 'Round of 16',
-  qf: 'Quarter-final',
-  sf: 'Semi-final',
-  '3rd': '3rd-place playoff',
-  final: 'Final',
+const STAGE_KEY: Record<Stage, string> = {
+  group: 'stages.group',
+  r32: 'stages.r32',
+  r16: 'stages.r16',
+  qf: 'stages.qf',
+  sf: 'stages.sf',
+  '3rd': 'stages.third',
+  final: 'stages.final',
 }
 
-function formatKickoff(ms: number): string {
-  return new Date(ms).toLocaleString(undefined, {
+function formatKickoff(ms: number, locale: string): string {
+  return new Date(ms).toLocaleString(locale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -28,23 +31,28 @@ function formatKickoff(ms: number): string {
 }
 
 function MatchHeader({ match }: { match: Match }) {
-  const isBrazil = match.homeTeam === 'Brazil' || match.awayTeam === 'Brazil'
-  const stageLabel = match.group ? `${STAGE_LABEL[match.stage]} · ${match.group}` : STAGE_LABEL[match.stage]
+  const t = useT()
+  const { locale } = useLocale()
+  const stageLabel = match.group ? `${t(STAGE_KEY[match.stage])} · ${match.group}` : t(STAGE_KEY[match.stage])
+  const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
   return (
     <header className="space-y-3">
-      <Link to="/matches" className="text-xs text-brand-500">← All matches</Link>
-      <div className="flex items-center gap-2 text-xs text-slate-400">
+      <Link to="/matches" className="text-xs text-brand-500">
+        {t('matchDetail.backToMatches')}
+      </Link>
+      <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
         <span>{stageLabel}</span>
-        {isBrazil && (
+        {mult > 1 && (
           <span className="text-[10px] font-bold text-amber-400 border border-amber-500/40 bg-amber-500/10 rounded px-1.5">
-            3× multiplier
+            {t('matchDetail.multiplierBadge', { n: mult })}
           </span>
         )}
       </div>
       <h1 className="text-2xl sm:text-3xl font-bold">
-        {match.homeTeam} <span className="text-slate-500 text-xl">vs</span> {match.awayTeam}
+        {match.homeTeam} <span className="text-slate-500 text-xl">{t('matchCard.vs')}</span>{' '}
+        {match.awayTeam}
       </h1>
-      <p className="text-sm text-slate-400">{formatKickoff(match.kickoffAt)}</p>
+      <p className="text-sm text-slate-400">{formatKickoff(match.kickoffAt, bcp47(locale))}</p>
     </header>
   )
 }
@@ -54,6 +62,9 @@ export function MatchDetail() {
   const match = useMatch(id)
   const { user } = useAuth()
   const myPrediction = useMyPrediction(id, user?.uid)
+  const t = useT()
+  const { locale } = useLocale()
+  useSync()
   const [home, setHome] = useState(0)
   const [away, setAway] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -68,13 +79,15 @@ export function MatchDetail() {
   }, [myPrediction])
 
   if (match === undefined) {
-    return <div className="p-6 text-slate-400">Loading…</div>
+    return <div className="p-6 text-slate-400">{t('matchDetail.loading')}</div>
   }
   if (match === null) {
     return (
       <div className="max-w-2xl mx-auto p-6 text-center space-y-3">
-        <p className="text-slate-400">Match not found.</p>
-        <Link to="/matches" className="text-brand-500 underline">Back to matches</Link>
+        <p className="text-slate-400">{t('matchDetail.notFound')}</p>
+        <Link to="/matches" className="text-brand-500 underline">
+          {t('matchDetail.backLink')}
+        </Link>
       </div>
     )
   }
@@ -103,12 +116,13 @@ export function MatchDetail() {
       <MatchHeader match={match} />
 
       {!isLocked && (
-        <form onSubmit={onSave} className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <form
+          onSubmit={onSave}
+          className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-4"
+        >
           <div>
-            <h2 className="font-semibold">Your prediction</h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Locks at kickoff. You can edit until then.
-            </p>
+            <h2 className="font-semibold">{t('matchDetail.yourPrediction')}</h2>
+            <p className="text-xs text-slate-400 mt-1">{t('matchDetail.locksAtKickoff')}</p>
           </div>
           <ScoreStepper label={match.homeTeam} value={home} onChange={setHome} disabled={busy} />
           <ScoreStepper label={match.awayTeam} value={away} onChange={setAway} disabled={busy} />
@@ -117,15 +131,19 @@ export function MatchDetail() {
             disabled={busy}
             className="w-full rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-50 px-4 py-4 font-semibold text-lg min-h-12"
           >
-            {busy ? 'Saving…' : hasPrediction ? 'Update pick' : 'Save pick'}
+            {busy
+              ? t('matchDetail.saving')
+              : hasPrediction
+              ? t('matchDetail.updatePick')
+              : t('matchDetail.savePick')}
           </button>
-          {savedFlash && (
-            <p className="text-sm text-emerald-400 text-center">Saved ✓</p>
-          )}
+          {savedFlash && <p className="text-sm text-emerald-400 text-center">{t('matchDetail.saved')}</p>}
           {error && <p className="text-sm text-red-400 break-words">{error}</p>}
           {hasPrediction && myPrediction?.submittedAt && (
             <p className="text-xs text-slate-500 text-center">
-              Last saved {new Date(myPrediction.submittedAt).toLocaleString()}
+              {t('matchDetail.lastSaved', {
+                when: new Date(myPrediction.submittedAt).toLocaleString(bcp47(locale)),
+              })}
             </p>
           )}
         </form>
@@ -133,10 +151,10 @@ export function MatchDetail() {
 
       {isLocked && (
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-          <h2 className="font-semibold">Predictions locked</h2>
+          <h2 className="font-semibold">{t('matchDetail.locked')}</h2>
           {hasPrediction ? (
             <div>
-              <p className="text-sm text-slate-400 mb-2">Your pick:</p>
+              <p className="text-sm text-slate-400 mb-2">{t('matchDetail.yourPick')}</p>
               <div className="flex items-center justify-center gap-4 text-3xl font-bold tabular-nums">
                 <span>{myPrediction!.home}</span>
                 <span className="text-slate-500">–</span>
@@ -144,11 +162,9 @@ export function MatchDetail() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-400">You didn't submit a pick for this match.</p>
+            <p className="text-sm text-slate-400">{t('matchDetail.noPickSubmitted')}</p>
           )}
-          <p className="text-xs text-slate-500 italic">
-            Other players' picks will be visible here in a later update.
-          </p>
+          <p className="text-xs text-slate-500 italic">{t('matchDetail.othersPicksLater')}</p>
         </section>
       )}
     </div>
