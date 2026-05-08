@@ -4,6 +4,7 @@ import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import { useSync } from '@/hooks/useSync'
 import { useT } from '@/i18n'
+import { RankOverTime } from '@/components/RankOverTime'
 import type { UserScore, UserProfile } from '@/types'
 
 interface LeaderboardRow {
@@ -47,20 +48,23 @@ export function Home() {
         <p className="text-slate-400">{t('home.noPlayers')}</p>
       )}
       {rows !== null && rows.length > 0 && (
-        <ol className="divide-y divide-slate-800 rounded-xl bg-slate-900 border border-slate-800">
-          {rows.map((row, i) => (
-            <li
-              key={row.uid}
-              className={`flex items-center gap-4 px-4 py-3 ${
-                row.uid === user?.uid ? 'bg-slate-800/40' : ''
-              }`}
-            >
-              <span className="w-8 text-center text-slate-500 font-mono">{i + 1}</span>
-              <span className="flex-1 truncate">{row.displayName}</span>
-              <span className="font-bold text-brand-500 tabular-nums">{row.total}</span>
-            </li>
-          ))}
-        </ol>
+        <>
+          <ol className="divide-y divide-slate-800 rounded-xl bg-slate-900 border border-slate-800">
+            {rows.map((row, i) => (
+              <li
+                key={row.uid}
+                className={`flex items-center gap-4 px-4 py-3 ${
+                  row.uid === user?.uid ? 'bg-slate-800/40' : ''
+                }`}
+              >
+                <span className="w-8 text-center text-slate-500 font-mono">{i + 1}</span>
+                <span className="flex-1 truncate">{row.displayName}</span>
+                <span className="font-bold text-brand-500 tabular-nums">{row.total}</span>
+              </li>
+            ))}
+          </ol>
+          <RankOverTime highlightUid={user?.uid ?? null} />
+        </>
       )}
     </div>
   )

@@ -32,6 +32,7 @@ const pt: typeof en = {
     title: 'Ranking',
     loading: 'Carregando…',
     noPlayers: 'Nenhum jogador ainda. Assim que o admin criar contas e elas entrarem, aparecerão aqui.',
+    rankOverTime: 'Ranking ao longo do tempo',
   },
   matches: {
     title: 'Jogos',

@@ -1,6 +1,7 @@
 import { get, ref, runTransaction, update } from 'firebase/database'
 import { db } from '@/firebase'
-import { fetchSeasonEvents, mapStatus, parseScore, teamKey } from './liveScores'
+import { fetchSeasonEvents } from './liveScores'
+import { deriveMatchUpdates } from './syncMerge'
 import { recomputeAllUserScores } from '@/scoring/recompute'
 import type { Match } from '@/types'
 
@@ -85,47 +86,7 @@ async function runSync(): Promise<number> {
     get(ref(db, 'matches')),
   ])
   const matches = (matchesSnap.val() ?? {}) as Record<string, Match>
-
-  // Build an index of matches keyed by date + sorted (homeKey, awayKey)
-  // (sorted because some sources flip home/away). This is for fuzzy match.
-  const matchIndex: Record<string, Match> = {}
-  for (const m of Object.values(matches)) {
-    const date = new Date(m.kickoffAt).toISOString().slice(0, 10)
-    const k = matchPairKey(date, m.homeTeam, m.awayTeam)
-    matchIndex[k] = m
-    // also previous and next day to handle UTC date drift
-    const dayMs = 24 * 60 * 60 * 1000
-    const prev = new Date(m.kickoffAt - dayMs).toISOString().slice(0, 10)
-    const next = new Date(m.kickoffAt + dayMs).toISOString().slice(0, 10)
-    matchIndex[matchPairKey(prev, m.homeTeam, m.awayTeam)] ??= m
-    matchIndex[matchPairKey(next, m.homeTeam, m.awayTeam)] ??= m
-  }
-
-  const updates: Record<string, unknown> = {}
-  let changed = 0
-  let scoresMayHaveChanged = false
-
-  for (const event of events) {
-    if (!event.dateEvent || !event.strHomeTeam || !event.strAwayTeam) continue
-    const k = matchPairKey(event.dateEvent, event.strHomeTeam, event.strAwayTeam)
-    const match = matchIndex[k]
-    if (!match) continue
-
-    const newStatus = mapStatus(event.strStatus)
-    const newScore = parseScore(event)
-
-    const statusChanged = newStatus !== match.status
-    const scoreChanged =
-      !!newScore && (!match.score || match.score.home !== newScore.home || match.score.away !== newScore.away)
-
-    if (statusChanged) updates[`matches/${match.id}/status`] = newStatus
-    if (scoreChanged && newScore) updates[`matches/${match.id}/score`] = newScore
-
-    if (statusChanged || scoreChanged) {
-      changed++
-      if (newStatus === 'FT') scoresMayHaveChanged = true
-    }
-  }
+  const { updates, changed, scoresMayHaveChanged } = deriveMatchUpdates(events, matches)
 
   if (Object.keys(updates).length > 0) {
     await update(ref(db), updates)
@@ -134,10 +95,4 @@ async function runSync(): Promise<number> {
     await recomputeAllUserScores()
   }
   return changed
-}
-
-function matchPairKey(date: string, t1: string, t2: string): string {
-  const a = teamKey(t1)
-  const b = teamKey(t2)
-  return `${date}|${[a, b].sort().join('-')}`
 }

@@ -30,6 +30,7 @@ const en = {
     title: 'Leaderboard',
     loading: 'Loading…',
     noPlayers: "No players yet. Once admin creates accounts and they sign in, they'll show up here.",
+    rankOverTime: 'Rank over time',
   },
   matches: {
     title: 'Matches',

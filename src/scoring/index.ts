@@ -1,4 +1,4 @@
-import type { Score, Stage } from '@/types'
+import type { Score, Stage } from '../types'
 
 export interface PointValues {
   exact: number
