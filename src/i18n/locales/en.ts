@@ -1,5 +1,5 @@
 const en = {
-  brand: 'WC Pool',
+  brand: 'BOLÃO',
   nav: {
     leaderboard: 'Leaderboard',
     matches: 'Matches',
@@ -125,9 +125,47 @@ const en = {
     syncRanThrottled: 'Throttled — last sync was less than 2 minutes ago.',
     syncRanAnotherClient: 'Another client is syncing right now.',
     syncRanOk: 'Sync complete. {changed} match(es) updated.',
-    moreToolsHeading: 'More tools',
-    moreToolsDesc:
-      'Manual score override, point-value editing, and other admin tools arrive in Phase 7.',
+    saving: 'Saving…',
+    savedAndRecomputed: 'Saved. Leaderboard recomputed.',
+    recomputeHeading: 'Recompute leaderboard',
+    recomputeDesc: 'Re-runs the scoring engine over all FT matches and bonus picks.',
+    recomputeNow: 'Recompute now',
+    recomputing: 'Recomputing…',
+    recomputeOk: 'Done. Leaderboard refreshed.',
+    scoreOverrideHeading: 'Manual score override',
+    scoreOverrideDesc:
+      'Search for a match and set its score and status manually. Triggers a recompute.',
+    searchMatchesPlaceholder: 'Search by team name…',
+    noMatchesFound: 'No matches found.',
+    statusLabel: 'Status',
+    saveOverride: 'Save override',
+    overrideOk: 'Match updated.',
+    pointValuesHeading: 'Point values',
+    pointValuesDesc:
+      'Base points per tier (highest matching tier wins). Multipliers (group/R32/R16/QF/SF/3rd/Final, plus the Brazil 3× rule) are applied on top.',
+    pointsExact: 'Exact score',
+    pointsGoalDiff: 'Correct goal difference',
+    pointsWinnerScore: "Winner team's score correct",
+    pointsLoserScore: "Loser team's score correct",
+    pointsOutcome: 'Correct outcome only',
+    saveAndRecompute: 'Save & recompute',
+    bonusValuesHeading: 'Bonus point values',
+    bonusValuesDesc:
+      'Points awarded for each bonus pick if the answer is correct.',
+    bonusWinnerLabel: 'Tournament Winner',
+    bonusTopScorerLabel: 'Top Scorer',
+    bonusAnswersHeading: 'Bonus answers',
+    bonusAnswersDesc:
+      "Set these once the tournament ends to award bonus points. Leave a field empty if you don't want to award that bonus.",
+    bonusAnswerNotSet: '— not set —',
+    bonusTopScorerPlaceholder: 'e.g. Vinícius Júnior',
+    allowlistHeading: 'Allowed emails',
+    allowlistDesc:
+      "Only these emails can sign in. Add a friend's email here AFTER you've created their account in the Firebase console.",
+    allowlistAdd: 'Add',
+    allowlistRemove: 'Remove',
+    allowlistEmpty: 'No allowed emails yet.',
+    allowlistSaved: 'Saved.',
   },
   placeholder: {
     comingSoon: 'Coming in a later phase.',

@@ -1,7 +1,7 @@
 import type en from './en'
 
 const pt: typeof en = {
-  brand: 'Bolão CDM',
+  brand: 'BOLÃO',
   nav: {
     leaderboard: 'Ranking',
     matches: 'Jogos',
@@ -127,9 +127,46 @@ const pt: typeof en = {
     syncRanThrottled: 'Limitado — última sincronização há menos de 2 minutos.',
     syncRanAnotherClient: 'Outro cliente está sincronizando agora.',
     syncRanOk: 'Sincronização concluída. {changed} jogo(s) atualizado(s).',
-    moreToolsHeading: 'Mais ferramentas',
-    moreToolsDesc:
-      'Override manual de placar, edição da tabela de pontos e outras ferramentas chegam na Fase 7.',
+    saving: 'Salvando…',
+    savedAndRecomputed: 'Salvo. Ranking recalculado.',
+    recomputeHeading: 'Recalcular ranking',
+    recomputeDesc: 'Roda novamente o motor de pontuação em todos os jogos encerrados e palpites bônus.',
+    recomputeNow: 'Recalcular agora',
+    recomputing: 'Recalculando…',
+    recomputeOk: 'Pronto. Ranking atualizado.',
+    scoreOverrideHeading: 'Editar placar manualmente',
+    scoreOverrideDesc:
+      'Busque um jogo e defina placar e status manualmente. Dispara recálculo automático.',
+    searchMatchesPlaceholder: 'Buscar por seleção…',
+    noMatchesFound: 'Nenhum jogo encontrado.',
+    statusLabel: 'Status',
+    saveOverride: 'Salvar override',
+    overrideOk: 'Jogo atualizado.',
+    pointValuesHeading: 'Tabela de pontos',
+    pointValuesDesc:
+      'Pontos base por categoria (a maior que se aplicar vence). Os multiplicadores (grupos/R32/oitavas/quartas/semis/3º/final + regra do Brasil 3×) são aplicados em cima.',
+    pointsExact: 'Cravou o placar',
+    pointsGoalDiff: 'Saldo de gols correto',
+    pointsWinnerScore: 'Gols do vencedor corretos',
+    pointsLoserScore: 'Gols do perdedor corretos',
+    pointsOutcome: 'Só acertou o vencedor',
+    saveAndRecompute: 'Salvar & recalcular',
+    bonusValuesHeading: 'Pontuação dos bônus',
+    bonusValuesDesc: 'Pontos concedidos por cada palpite bônus se a resposta for correta.',
+    bonusWinnerLabel: 'Campeão',
+    bonusTopScorerLabel: 'Artilheiro',
+    bonusAnswersHeading: 'Respostas oficiais (bônus)',
+    bonusAnswersDesc:
+      'Defina ao final do torneio para conceder os pontos bônus. Deixe em branco para não conceder aquele bônus.',
+    bonusAnswerNotSet: '— não definido —',
+    bonusTopScorerPlaceholder: 'ex.: Vinícius Júnior',
+    allowlistHeading: 'E-mails permitidos',
+    allowlistDesc:
+      'Somente estes e-mails podem entrar. Adicione o e-mail de um amigo aqui DEPOIS de criar a conta dele no console do Firebase.',
+    allowlistAdd: 'Adicionar',
+    allowlistRemove: 'Remover',
+    allowlistEmpty: 'Nenhum e-mail permitido ainda.',
+    allowlistSaved: 'Salvo.',
   },
   placeholder: {
     comingSoon: 'Em uma fase futura.',

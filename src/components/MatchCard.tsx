@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import type { Match, Prediction, Stage } from '@/types'
+import { getTeamEmblemUrl } from '@/utils/emblems'
 
 const SHORT_STAGE_KEY: Record<Stage, string> = {
   group: 'stages.groupShort',
@@ -24,9 +25,9 @@ function StatusPill({ status }: { status: Match['status'] }) {
   const t = useT()
   const styles =
     status === 'LIVE'
-      ? 'bg-red-500/20 text-red-300 border-red-500/30'
+      ? 'bg-red-500/20 text-red-300 border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.4)] animate-pulse'
       : status === 'FT'
-      ? 'bg-slate-700 text-slate-300 border-slate-600'
+      ? 'bg-slate-800 text-slate-400 border-slate-700'
       : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
   const label =
     status === 'SCHEDULED'
@@ -34,7 +35,7 @@ function StatusPill({ status }: { status: Match['status'] }) {
       : status === 'LIVE'
       ? t('matchCard.statusLive')
       : t('matchCard.statusFinal')
-  return <span className={`text-[10px] px-2 py-0.5 rounded-full border ${styles}`}>{label}</span>
+  return <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold tracking-wide ${styles}`}>{label}</span>
 }
 
 export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?: Prediction }) {
@@ -49,45 +50,68 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
   return (
     <Link
       to={`/matches/${match.id}`}
-      className="block bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 active:bg-slate-800/70 hover:border-slate-700 transition-colors"
+      className="block relative overflow-hidden bg-slate-900 border border-slate-800/80 rounded-2xl px-6 py-6 sm:px-8 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10 hover:border-slate-700/80 transition-all duration-300 group"
     >
-      <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
-        <span className="flex items-center gap-2">
+      {/* Decorative gradient blob */}
+      <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/5 rounded-full blur-3xl group-hover:bg-brand-500/10 transition-colors" />
+
+      <div className="relative flex items-center justify-between text-sm text-slate-400 mb-6">
+        <span className="flex items-center gap-2 font-medium tracking-wide">
           <span>{stageLabel}</span>
           {isBrazil && (
-            <span className="text-[10px] font-bold text-amber-400 border border-amber-500/40 bg-amber-500/10 rounded px-1.5">
+            <span className="text-xs font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded px-2 py-0.5 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
               3×
             </span>
           )}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {showPickBadge && (
-            <span className="text-[10px] font-bold text-brand-500 border border-brand-500/40 bg-brand-500/10 rounded px-1.5 tabular-nums">
+            <span className="text-xs font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded-md px-2 py-0.5 tabular-nums">
               {t('matchCard.pickedBadgePrefix')} {myPrediction!.home}–{myPrediction!.away}
             </span>
           )}
           {showMissingBadge && (
-            <span className="text-[10px] font-semibold text-slate-400 border border-slate-700 rounded px-1.5">
+            <span className="text-xs font-semibold text-slate-400 border border-slate-700 rounded-md px-2 py-0.5">
               {t('matchCard.noPick')}
             </span>
           )}
           <StatusPill status={match.status} />
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <span className="flex-1 truncate text-right font-medium">{match.homeTeam}</span>
-        <span className="px-2 text-slate-500 shrink-0">
+
+      <div className="relative flex items-center gap-6">
+        <div className="flex-1 flex items-center gap-4 justify-end">
+          <span className="truncate text-right font-bold text-lg sm:text-2xl text-slate-200 group-hover:text-white transition-colors">{match.homeTeam}</span>
+          <img 
+            src={getTeamEmblemUrl(match.homeTeam)} 
+            alt={`${match.homeTeam} emblem`}
+            className="w-10 h-10 sm:w-16 sm:h-16 object-contain drop-shadow-md"
+            onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
+          />
+        </div>
+        
+        <span className="px-2 text-slate-500 shrink-0 min-w-[4rem] text-center flex items-center justify-center">
           {match.score ? (
-            <span className="font-bold text-slate-100 text-lg tabular-nums">
-              {match.score.home} – {match.score.away}
+            <span className="font-bold text-white text-2xl sm:text-3xl tabular-nums bg-slate-800/80 px-4 py-1.5 rounded-xl border border-slate-700/50 shadow-inner">
+              {match.score.home} <span className="text-slate-500 mx-1">-</span> {match.score.away}
             </span>
           ) : (
-            <span className="text-xs">{t('matchCard.vs')}</span>
+            <span className="text-sm font-bold text-slate-600 bg-slate-800/50 px-3 py-1.5 rounded-lg">{t('matchCard.vs')}</span>
           )}
         </span>
-        <span className="flex-1 truncate font-medium">{match.awayTeam}</span>
+
+        <div className="flex-1 flex items-center gap-4 justify-start">
+          <img 
+            src={getTeamEmblemUrl(match.awayTeam)} 
+            alt={`${match.awayTeam} emblem`}
+            className="w-10 h-10 sm:w-16 sm:h-16 object-contain drop-shadow-md"
+            onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
+          />
+          <span className="truncate font-bold text-lg sm:text-2xl text-slate-200 group-hover:text-white transition-colors">{match.awayTeam}</span>
+        </div>
       </div>
-      <div className="text-xs text-slate-500 mt-1.5 text-center">
+
+      <div className="relative text-sm font-medium text-slate-500 mt-6 text-center">
         {formatKickoff(match.kickoffAt, bcp47(locale))}
       </div>
     </Link>

@@ -12,7 +12,7 @@ import {
   signOut,
   type User,
 } from 'firebase/auth'
-import { onValue, ref } from 'firebase/database'
+import { get, onValue, ref, set } from 'firebase/database'
 import { auth, db } from '@/firebase'
 
 export type AuthStatus = 'loading' | 'signed-out' | 'not-allowed' | 'signed-in' | 'error'
@@ -78,6 +78,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return 'signed-in'
   }, [authResolved, user, allowedEmails, error])
+
+  // Auto-create the /users/{uid} profile on first sign-in so new allowlisted
+  // users appear on the leaderboard without manual Firebase Console work.
+  // Locked-down /users rules permit this only when no profile exists yet.
+  useEffect(() => {
+    if (status !== 'signed-in' || !user) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const snap = await get(ref(db, `users/${user.uid}`))
+        if (cancelled || snap.exists()) return
+        await set(ref(db, `users/${user.uid}`), {
+          displayName: user.email?.split('@')[0] ?? user.uid.slice(0, 6),
+          email: user.email ?? '',
+          role: 'player',
+        })
+      } catch (err) {
+        console.warn('Failed to create user profile:', err)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [status, user])
 
   const value: AuthContextValue = {
     user,
