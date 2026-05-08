@@ -133,96 +133,127 @@ export function MatchDetail() {
     }
   }
 
+  if (!isLocked) {
+    const stageLabel = match.group ? `${t(STAGE_KEY[match.stage])} · ${match.group}` : t(STAGE_KEY[match.stage])
+    const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
+    return (
+      <form
+        onSubmit={onSave}
+        className="flex flex-col min-h-[calc(100dvh-3.5rem)] sm:min-h-[calc(100dvh-4rem)]"
+      >
+        {/* Compact top bar — back link, stage, multiplier */}
+        <div className="px-4 py-3 sm:px-6 sm:py-4 flex items-center gap-3 text-xs sm:text-sm flex-wrap">
+          <Link to="/matches" className="text-brand-500 hover:text-brand-400 font-medium">
+            ← {t('matchDetail.backToMatches')}
+          </Link>
+          <span className="text-slate-400 font-medium">{stageLabel}</span>
+          {mult > 1 && (
+            <span className="text-[10px] font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded px-1.5 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
+              {t('matchDetail.multiplierBadge', { n: mult })}
+            </span>
+          )}
+        </div>
+
+        {/* Full-bleed prediction area — fills remaining height */}
+        <div className="relative flex-1 overflow-hidden flex items-center justify-center px-2 sm:px-6 py-4 sm:py-8">
+          {/* Oversized emblems pinned to the edges, cropped by overflow-hidden */}
+          <img
+            src={getTeamEmblemUrl(match.homeTeam)}
+            alt=""
+            onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
+            className="absolute -left-32 sm:-left-56 top-1/2 -translate-y-1/2 w-72 h-auto sm:w-[36rem] object-contain pointer-events-none select-none opacity-50"
+          />
+          <img
+            src={getTeamEmblemUrl(match.awayTeam)}
+            alt=""
+            onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
+            className="absolute -right-32 sm:-right-56 top-1/2 -translate-y-1/2 w-72 h-auto sm:w-[36rem] object-contain pointer-events-none select-none opacity-50"
+          />
+
+          <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-10 w-full">
+            <p className="text-xs sm:text-base font-bold text-slate-200 tracking-wide">
+              {formatKickoff(match.kickoffAt, bcp47(locale))}
+            </p>
+
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 sm:gap-x-10 gap-y-5 sm:gap-y-7 w-full max-w-lg">
+              <div className="flex justify-center">
+                <ScoreStepper value={home} onChange={setHome} disabled={busy} label={match.homeTeam} />
+              </div>
+              <span className="text-4xl sm:text-6xl font-bold text-slate-400 select-none px-1">
+                x
+              </span>
+              <div className="flex justify-center">
+                <ScoreStepper value={away} onChange={setAway} disabled={busy} label={match.awayTeam} />
+              </div>
+
+              <h3 className="text-center text-lg sm:text-2xl font-bold text-slate-100 truncate px-1">
+                {match.homeTeam}
+              </h3>
+              <span aria-hidden="true" />
+              <h3 className="text-center text-lg sm:text-2xl font-bold text-slate-100 truncate px-1">
+                {match.awayTeam}
+              </h3>
+            </div>
+
+            <div className="w-full max-w-lg space-y-2">
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full rounded-2xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 px-4 py-4 font-bold text-lg min-h-12 transition-all hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:-translate-y-0.5 active:translate-y-0 text-slate-950"
+              >
+                {busy
+                  ? t('matchDetail.saving')
+                  : hasPrediction
+                  ? t('matchDetail.updatePick')
+                  : t('matchDetail.savePick')}
+              </button>
+              {savedFlash && <p className="text-sm text-emerald-400 text-center">{t('matchDetail.saved')}</p>}
+              {error && <p className="text-sm text-red-400 break-words">{error}</p>}
+              {hasPrediction && myPrediction?.submittedAt && (
+                <p className="text-xs text-slate-500 text-center">
+                  {t('matchDetail.lastSaved', {
+                    when: new Date(myPrediction.submittedAt).toLocaleString(bcp47(locale)),
+                  })}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </form>
+    )
+  }
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
       <MatchHeader match={match} />
 
-      {!isLocked && (
-        <form
-          onSubmit={onSave}
-          className="space-y-6"
-        >
-          <div className="border-b border-slate-800/50 pb-4 mb-2">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">{t('matchDetail.yourPrediction')}</h2>
-            <p className="text-sm text-slate-400 mt-1.5">{t('matchDetail.locksAtKickoff')}</p>
-          </div>
-          
-          <div className="relative overflow-hidden bg-slate-900 border border-slate-800/80 rounded-3xl p-6 sm:p-12 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-8 sm:gap-12">
-            {/* Faded background logos */}
-            <div className="absolute top-0 left-0 w-full sm:w-1/2 h-full opacity-[0.03] sm:opacity-5 pointer-events-none flex items-center justify-center sm:-translate-x-1/4 scale-150">
-              <img src={getTeamEmblemUrl(match.homeTeam)} className="w-full h-full object-contain" />
-            </div>
-            <div className="absolute top-0 right-0 w-full sm:w-1/2 h-full opacity-[0.03] sm:opacity-5 pointer-events-none flex items-center justify-center sm:translate-x-1/4 scale-150">
-              <img src={getTeamEmblemUrl(match.awayTeam)} className="w-full h-full object-contain" />
-            </div>
-
-            <div className="relative z-10 flex-1 flex flex-col items-center gap-6 w-full">
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-white text-center drop-shadow-md">{match.homeTeam}</h3>
-              <ScoreStepper value={home} onChange={setHome} disabled={busy} label={match.homeTeam} />
-            </div>
-
-            <div className="relative z-10 flex-none text-2xl sm:text-4xl font-black text-slate-600 bg-slate-800/80 px-6 py-3 rounded-2xl shadow-inner my-2 sm:my-0">
-              {t('matchCard.vs')}
-            </div>
-
-            <div className="relative z-10 flex-1 flex flex-col items-center gap-6 w-full">
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-white text-center drop-shadow-md">{match.awayTeam}</h3>
-              <ScoreStepper value={away} onChange={setAway} disabled={busy} label={match.awayTeam} />
+      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <h2 className="font-semibold">{t('matchDetail.locked')}</h2>
+        {match.score && (
+          <div>
+            <p className="text-sm text-slate-400 mb-2">{t('matchDetail.actualResult')}</p>
+            <div className="flex items-center justify-center gap-4 text-3xl font-bold tabular-nums">
+              <span>{match.score.home}</span>
+              <span className="text-slate-500">–</span>
+              <span>{match.score.away}</span>
             </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-2xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 px-4 py-5 font-bold text-xl min-h-14 transition-all hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:-translate-y-0.5 active:translate-y-0 text-slate-950 mt-4"
-          >
-            {busy
-              ? t('matchDetail.saving')
-              : hasPrediction
-              ? t('matchDetail.updatePick')
-              : t('matchDetail.savePick')}
-          </button>
-          {savedFlash && <p className="text-sm text-emerald-400 text-center">{t('matchDetail.saved')}</p>}
-          {error && <p className="text-sm text-red-400 break-words">{error}</p>}
-          {hasPrediction && myPrediction?.submittedAt && (
-            <p className="text-xs text-slate-500 text-center">
-              {t('matchDetail.lastSaved', {
-                when: new Date(myPrediction.submittedAt).toLocaleString(bcp47(locale)),
-              })}
-            </p>
-          )}
-        </form>
-      )}
-
-      {isLocked && (
-        <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-          <h2 className="font-semibold">{t('matchDetail.locked')}</h2>
-          {match.score && (
-            <div>
-              <p className="text-sm text-slate-400 mb-2">{t('matchDetail.actualResult')}</p>
-              <div className="flex items-center justify-center gap-4 text-3xl font-bold tabular-nums">
-                <span>{match.score.home}</span>
-                <span className="text-slate-500">–</span>
-                <span>{match.score.away}</span>
-              </div>
+        )}
+        {hasPrediction ? (
+          <div>
+            <p className="text-sm text-slate-400 mb-2">{t('matchDetail.yourPick')}</p>
+            <div className="flex items-center justify-center gap-4 text-2xl font-bold tabular-nums text-brand-500">
+              <span>{myPrediction!.home}</span>
+              <span className="text-slate-500">–</span>
+              <span>{myPrediction!.away}</span>
             </div>
-          )}
-          {hasPrediction ? (
-            <div>
-              <p className="text-sm text-slate-400 mb-2">{t('matchDetail.yourPick')}</p>
-              <div className="flex items-center justify-center gap-4 text-2xl font-bold tabular-nums text-brand-500">
-                <span>{myPrediction!.home}</span>
-                <span className="text-slate-500">–</span>
-                <span>{myPrediction!.away}</span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-slate-400">{t('matchDetail.noPickSubmitted')}</p>
-          )}
-        </section>
-      )}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-400">{t('matchDetail.noPickSubmitted')}</p>
+        )}
+      </section>
 
-      {isLocked && <EveryonesPicks match={match} />}
+      <EveryonesPicks match={match} />
     </div>
   )
 }
