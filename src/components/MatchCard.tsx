@@ -79,35 +79,37 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
         </div>
       </div>
 
-      <div className="relative flex items-center gap-6">
-        <div className="flex-1 flex items-center gap-4 justify-end">
-          <span className="truncate text-right font-bold text-lg sm:text-2xl text-slate-200 group-hover:text-white transition-colors">{match.homeTeam}</span>
+      <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-x-2 sm:gap-x-6 w-full">
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-1.5 sm:gap-4 min-w-0">
+          <span className="hidden sm:block truncate text-right font-bold text-2xl text-slate-200 group-hover:text-white transition-colors min-w-0">{match.homeTeam}</span>
           <img 
             src={getTeamEmblemUrl(match.homeTeam)} 
             alt={`${match.homeTeam} emblem`}
-            className="w-10 h-10 sm:w-16 sm:h-16 object-contain drop-shadow-md"
+            className="w-12 h-12 sm:w-16 sm:h-16 object-contain drop-shadow-md shrink-0"
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
           />
+          <span className="sm:hidden text-center font-bold text-[13px] leading-tight text-slate-200 group-hover:text-white transition-colors line-clamp-2 px-1">{match.homeTeam}</span>
         </div>
         
-        <span className="px-2 text-slate-500 shrink-0 min-w-[4rem] text-center flex items-center justify-center">
+        <div className="px-1 sm:px-2 text-slate-500 shrink-0 text-center flex items-center justify-center">
           {match.score ? (
-            <span className="font-bold text-white text-2xl sm:text-3xl tabular-nums bg-slate-800/80 px-4 py-1.5 rounded-xl border border-slate-700/50 shadow-inner">
-              {match.score.home} <span className="text-slate-500 mx-1">-</span> {match.score.away}
+            <span className="font-bold text-white text-xl sm:text-3xl tabular-nums bg-slate-800/80 px-3 sm:px-4 py-1.5 rounded-xl border border-slate-700/50 shadow-inner whitespace-nowrap">
+              {match.score.home} <span className="text-slate-500 mx-0.5 sm:mx-1">-</span> {match.score.away}
             </span>
           ) : (
-            <span className="text-sm font-bold text-slate-600 bg-slate-800/50 px-3 py-1.5 rounded-lg">{t('matchCard.vs')}</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-600 bg-slate-800/50 px-2 sm:px-3 py-1.5 rounded-lg whitespace-nowrap">{t('matchCard.vs')}</span>
           )}
-        </span>
+        </div>
 
-        <div className="flex-1 flex items-center gap-4 justify-start">
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1.5 sm:gap-4 min-w-0">
           <img 
             src={getTeamEmblemUrl(match.awayTeam)} 
             alt={`${match.awayTeam} emblem`}
-            className="w-10 h-10 sm:w-16 sm:h-16 object-contain drop-shadow-md"
+            className="w-12 h-12 sm:w-16 sm:h-16 object-contain drop-shadow-md shrink-0"
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
           />
-          <span className="truncate font-bold text-lg sm:text-2xl text-slate-200 group-hover:text-white transition-colors">{match.awayTeam}</span>
+          <span className="sm:hidden text-center font-bold text-[13px] leading-tight text-slate-200 group-hover:text-white transition-colors line-clamp-2 px-1">{match.awayTeam}</span>
+          <span className="hidden sm:block truncate text-left font-bold text-2xl text-slate-200 group-hover:text-white transition-colors min-w-0">{match.awayTeam}</span>
         </div>
       </div>
 
