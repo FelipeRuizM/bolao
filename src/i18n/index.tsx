@@ -6,10 +6,16 @@ const dicts = { en, pt } as const
 export type Locale = keyof typeof dicts
 export const LOCALES: Locale[] = ['en', 'pt']
 
+export interface TFunction {
+  (key: string, params?: Record<string, string | number>): string
+  /** Display-time team-name lookup. Falls back to the canonical English name. */
+  team: (name: string) => string
+}
+
 interface LocaleContextValue {
   locale: Locale
   setLocale: (l: Locale) => void
-  t: (key: string, params?: Record<string, string | number>) => string
+  t: TFunction
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null)
@@ -49,7 +55,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     }
   }, [locale])
 
-  function t(key: string, params?: Record<string, string | number>): string {
+  function tBase(key: string, params?: Record<string, string | number>): string {
     const path = key.split('.')
     const val = lookup(dicts[locale], path) ?? lookup(dicts.en, path)
     if (val == null) {
@@ -61,6 +67,12 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       params[k] !== undefined ? String(params[k]) : `{${k}}`,
     )
   }
+
+  const t: TFunction = Object.assign(tBase, {
+    team(name: string): string {
+      return dicts[locale].teams[name] ?? dicts.en.teams[name] ?? name
+    },
+  })
 
   return (
     <LocaleContext.Provider value={{ locale, setLocale, t }}>{children}</LocaleContext.Provider>

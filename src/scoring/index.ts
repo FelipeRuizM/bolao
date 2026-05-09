@@ -106,7 +106,7 @@ export function classifyTier(prediction: Score, actual: Score): Tier {
 export function multiplierFor(stage: Stage, homeTeam: string, awayTeam: string): number {
   const stageMult = STAGE_MULTIPLIERS[stage]
   const brazilMult = homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME ? BRAZIL_MULTIPLIER : 1
-  return Math.max(stageMult, brazilMult)
+  return stageMult * brazilMult
 }
 
 export interface ComputePointsArgs {

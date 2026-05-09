@@ -105,7 +105,7 @@ export function BonusAdminSection() {
             <option value="">{t('admin.bonusAnswerNotSet')}</option>
             {teams.map((team) => (
               <option key={team} value={team}>
-                {team}
+                {t.team(team)}
               </option>
             ))}
           </select>

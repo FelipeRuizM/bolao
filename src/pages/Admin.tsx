@@ -9,6 +9,7 @@ import { ScoreOverrideSection } from '@/components/admin/ScoreOverrideSection'
 import { PointValuesSection } from '@/components/admin/PointValuesSection'
 import { BonusAdminSection } from '@/components/admin/BonusAdminSection'
 import { AllowlistSection } from '@/components/admin/AllowlistSection'
+import { PlayersSection } from '@/components/admin/PlayersSection'
 
 function ImportFixturesSection() {
   const t = useT()
@@ -91,6 +92,7 @@ export function Admin() {
       <PointValuesSection />
       <BonusAdminSection />
       <AllowlistSection />
+      <PlayersSection />
     </div>
   )
 }

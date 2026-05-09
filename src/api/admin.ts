@@ -52,6 +52,10 @@ export async function setAllowedEmails(emails: string[]): Promise<void> {
   await set(ref(db, 'meta/config/allowedEmails'), unique)
 }
 
+export async function setUserPaid(uid: string, paid: boolean): Promise<void> {
+  await set(ref(db, `users/${uid}/paid`), paid)
+}
+
 export async function setLockBonusAt(timestamp: number): Promise<void> {
   await set(ref(db, 'meta/config/lockBonusAt'), timestamp)
 }

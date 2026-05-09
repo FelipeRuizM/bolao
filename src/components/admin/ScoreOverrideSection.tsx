@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react'
 import { useMatches } from '@/hooks/useMatches'
 import { overrideMatchResult } from '@/api/admin'
-import { useLocale, useT, bcp47 } from '@/i18n'
+import { useLocale, useT, bcp47, type TFunction } from '@/i18n'
 import { AdminButton, AdminCard, StatusLine } from './AdminCard'
 import type { Match, MatchStatus } from '@/types'
 
 const STATUSES: MatchStatus[] = ['SCHEDULED', 'LIVE', 'FT']
 
-function formatLabel(m: Match, locale: string): string {
+function formatLabel(m: Match, locale: string, t: TFunction): string {
   const d = new Date(m.kickoffAt).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
   })
-  return `${m.homeTeam} vs ${m.awayTeam} · ${d}`
+  return `${t.team(m.homeTeam)} vs ${t.team(m.awayTeam)} · ${d}`
 }
 
 export function ScoreOverrideSection() {
@@ -60,7 +60,7 @@ export function ScoreOverrideSection() {
                 onClick={() => setSelectedId(m.id)}
                 className="w-full text-left bg-slate-800/60 hover:bg-slate-800 rounded px-3 py-2 text-sm flex justify-between items-center gap-2"
               >
-                <span className="truncate">{formatLabel(m, bcp47(locale))}</span>
+                <span className="truncate">{formatLabel(m, bcp47(locale), t)}</span>
                 <span className="text-[10px] text-slate-400 shrink-0">
                   {m.status}
                   {m.score && ` · ${m.score.home}-${m.score.away}`}
@@ -108,7 +108,7 @@ function OverrideForm({ match, onClose }: { match: Match; onClose: () => void })
     <div className="bg-slate-800/60 rounded-xl p-3 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-sm">
-          {match.homeTeam} vs {match.awayTeam}
+          {t.team(match.homeTeam)} vs {t.team(match.awayTeam)}
         </span>
         <button
           type="button"
@@ -121,7 +121,7 @@ function OverrideForm({ match, onClose }: { match: Match; onClose: () => void })
 
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">{match.homeTeam}</span>
+          <span className="text-xs text-slate-400">{t.team(match.homeTeam)}</span>
           <input
             type="number"
             inputMode="numeric"
@@ -134,7 +134,7 @@ function OverrideForm({ match, onClose }: { match: Match; onClose: () => void })
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">{match.awayTeam}</span>
+          <span className="text-xs text-slate-400">{t.team(match.awayTeam)}</span>
           <input
             type="number"
             inputMode="numeric"

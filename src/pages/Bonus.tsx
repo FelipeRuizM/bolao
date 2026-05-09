@@ -121,7 +121,7 @@ export function Bonus() {
               <option value="">{t('bonus.tournamentWinnerPlaceholder')}</option>
               {teams.map((team) => (
                 <option key={team} value={team}>
-                  {team}
+                  {t.team(team)}
                 </option>
               ))}
             </select>
@@ -158,7 +158,10 @@ export function Bonus() {
       {isLocked && (
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
           <h2 className="font-semibold">{t('bonus.yourPicks')}</h2>
-          <Row label={t('bonus.tournamentWinnerLabel')} value={myPick?.tournamentWinner} />
+          <Row
+            label={t('bonus.tournamentWinnerLabel')}
+            value={myPick?.tournamentWinner ? t.team(myPick.tournamentWinner) : undefined}
+          />
           <Row label={t('bonus.topScorerLabel')} value={myPick?.topScorer} />
         </section>
       )}
@@ -167,7 +170,7 @@ export function Bonus() {
         <section className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-4 space-y-2">
           <h2 className="font-semibold text-emerald-300">{t('bonus.answersHeading')}</h2>
           {answers.tournamentWinner && (
-            <Row label={t('bonus.answersWinner')} value={answers.tournamentWinner} bold />
+            <Row label={t('bonus.answersWinner')} value={t.team(answers.tournamentWinner)} bold />
           )}
           {answers.topScorer && <Row label={t('bonus.answersTopScorer')} value={answers.topScorer} bold />}
         </section>
@@ -271,7 +274,7 @@ function EveryonesBonus({
             {row.pick ? (
               <div className="flex items-center gap-3 text-xs">
                 <span className={`flex-1 truncate ${row.winnerOk ? 'text-emerald-300 font-semibold' : 'text-slate-300'}`}>
-                  🏆 {row.pick.tournamentWinner || '—'}
+                  🏆 {row.pick.tournamentWinner ? t.team(row.pick.tournamentWinner) : '—'}
                 </span>
                 <span className={`flex-1 truncate ${row.scorerOk ? 'text-emerald-300 font-semibold' : 'text-slate-300'}`}>
                   ⚽ {row.pick.topScorer || '—'}

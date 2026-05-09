@@ -14,5 +14,12 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["**/*.ts", "../src/scoring/computeAll.ts", "../src/scoring/index.ts", "../src/api/syncMerge.ts", "../src/api/liveScores.ts", "../src/types.ts"]
+  "include": [
+    "**/*.ts",
+    "../src/scoring/computeAll.ts",
+    "../src/scoring/index.ts",
+    "../src/api/syncMerge.ts",
+    "../src/api/liveScores.ts",
+    "../src/types.ts"
+  ]
 }

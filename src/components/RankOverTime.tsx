@@ -28,9 +28,11 @@ const COLORS = [
 
 interface Props {
   highlightUid?: string | null
+  /** When set, restrict lines + ranking to these uids only. Undefined = all users. */
+  filterUids?: string[]
 }
 
-export function RankOverTime({ highlightUid }: Props) {
+export function RankOverTime({ highlightUid, filterUids }: Props) {
   const t = useT()
   const { locale } = useLocale()
   const [history, setHistory] = useState<Record<string, Record<string, number>> | null>(null)
@@ -54,9 +56,12 @@ export function RankOverTime({ highlightUid }: Props) {
     const dates = Object.keys(history).sort()
     if (dates.length === 0) return { chartData: [], lines: [] }
 
-    const uids = Object.keys(users).sort()
+    const allUids = Object.keys(users).sort()
     const uidColor: Record<string, string> = {}
-    uids.forEach((uid, i) => { uidColor[uid] = COLORS[i % COLORS.length]! })
+    allUids.forEach((uid, i) => { uidColor[uid] = COLORS[i % COLORS.length]! })
+
+    const uids = filterUids ? allUids.filter((u) => filterUids.includes(u)) : allUids
+    if (uids.length === 0) return { chartData: [], lines: [] }
 
     const data = dates.map((date) => {
       const totals = history[date] ?? {}
@@ -73,7 +78,7 @@ export function RankOverTime({ highlightUid }: Props) {
     }))
 
     return { chartData: data, lines: lineDefs }
-  }, [history, users, locale])
+  }, [history, users, locale, filterUids])
 
   if (history === null || users === null) return null
   if (chartData.length === 0) return null

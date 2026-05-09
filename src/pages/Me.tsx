@@ -111,9 +111,9 @@ export function Me() {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="flex-1 truncate text-right font-medium text-sm">{match.homeTeam}</span>
-              <span className="px-2 text-slate-500 shrink-0 text-xs">vs</span>
-              <span className="flex-1 truncate font-medium text-sm">{match.awayTeam}</span>
+              <span className="flex-1 truncate text-right font-medium text-sm">{t.team(match.homeTeam)}</span>
+              <span className="px-2 text-slate-500 shrink-0 text-xs">{t('matchCard.vs')}</span>
+              <span className="flex-1 truncate font-medium text-sm">{t.team(match.awayTeam)}</span>
             </div>
 
             <div className="mt-2 flex items-center justify-center gap-6 text-sm">

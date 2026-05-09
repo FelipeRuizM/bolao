@@ -53,20 +53,20 @@ function MatchHeader({ match }: { match: Match }) {
       </div>
       <div className="flex items-center gap-4 text-2xl sm:text-4xl font-bold tracking-tight">
         <div className="flex items-center gap-3">
-          <img 
-            src={getTeamEmblemUrl(match.homeTeam)} 
-            alt={match.homeTeam} 
+          <img
+            src={getTeamEmblemUrl(match.homeTeam)}
+            alt={t.team(match.homeTeam)}
             className="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-xl"
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
           />
-          <span className="truncate text-slate-100">{match.homeTeam}</span>
+          <span className="truncate text-slate-100">{t.team(match.homeTeam)}</span>
         </div>
         <span className="text-slate-600 text-xl sm:text-3xl font-semibold bg-slate-800/50 px-4 py-2 rounded-xl">{t('matchCard.vs')}</span>
         <div className="flex items-center gap-3">
-          <span className="truncate text-slate-100">{match.awayTeam}</span>
-          <img 
-            src={getTeamEmblemUrl(match.awayTeam)} 
-            alt={match.awayTeam} 
+          <span className="truncate text-slate-100">{t.team(match.awayTeam)}</span>
+          <img
+            src={getTeamEmblemUrl(match.awayTeam)}
+            alt={t.team(match.awayTeam)}
             className="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-xl"
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
           />
@@ -177,21 +177,21 @@ export function MatchDetail() {
 
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 sm:gap-x-10 gap-y-5 sm:gap-y-7 w-full max-w-lg">
               <div className="flex justify-center">
-                <ScoreStepper value={home} onChange={setHome} disabled={busy} label={match.homeTeam} />
+                <ScoreStepper value={home} onChange={setHome} disabled={busy} label={t.team(match.homeTeam)} />
               </div>
               <span className="text-4xl sm:text-6xl font-bold text-slate-400 select-none px-1">
                 x
               </span>
               <div className="flex justify-center">
-                <ScoreStepper value={away} onChange={setAway} disabled={busy} label={match.awayTeam} />
+                <ScoreStepper value={away} onChange={setAway} disabled={busy} label={t.team(match.awayTeam)} />
               </div>
 
               <h3 className="text-center text-lg sm:text-2xl font-bold text-slate-100 truncate px-1">
-                {match.homeTeam}
+                {t.team(match.homeTeam)}
               </h3>
               <span aria-hidden="true" />
               <h3 className="text-center text-lg sm:text-2xl font-bold text-slate-100 truncate px-1">
-                {match.awayTeam}
+                {t.team(match.awayTeam)}
               </h3>
             </div>
 

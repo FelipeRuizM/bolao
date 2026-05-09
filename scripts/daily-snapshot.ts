@@ -42,6 +42,20 @@ function brtDateLabel(now: number = Date.now()): string {
   return brt.toISOString().slice(0, 10)
 }
 
+/**
+ * Reads --date YYYY-MM-DD from CLI args and returns it if valid, else null.
+ * Lets the user backfill past days locally without waiting for the cron.
+ */
+function parseDateArg(): string | null {
+  const idx = process.argv.indexOf('--date')
+  if (idx === -1) return null
+  const val = process.argv[idx + 1]
+  if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+    throw new Error(`--date expects YYYY-MM-DD, got: ${val ?? '(missing)'}`)
+  }
+  return val
+}
+
 async function main(): Promise<void> {
   const db = initAdmin()
 
@@ -100,7 +114,7 @@ async function main(): Promise<void> {
     bonusAnswers: config.bonusAnswers,
   })
 
-  const dateLabel = brtDateLabel()
+  const dateLabel = parseDateArg() ?? brtDateLabel()
   console.log(`Writing scores + snapshot for ${dateLabel}…`)
 
   const writes: Record<string, unknown> = {}

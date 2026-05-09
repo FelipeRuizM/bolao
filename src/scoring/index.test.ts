@@ -48,12 +48,20 @@ describe('multiplierFor', () => {
     expect(multiplierFor('group', 'Brazil', 'Serbia')).toBe(3)
   })
 
-  it('Brazil quarter-final stays at 3x (max of 2 and 3)', () => {
-    expect(multiplierFor('qf', 'Brazil', 'France')).toBe(3)
+  it('Brazil quarter-final = 6x (2 stage * 3 brazil)', () => {
+    expect(multiplierFor('qf', 'Brazil', 'France')).toBe(6)
   })
 
-  it('Brazil final stays at 3x (max of 3 and 3 — no stacking)', () => {
-    expect(multiplierFor('final', 'Brazil', 'Argentina')).toBe(3)
+  it('Brazil final = 9x (3 stage * 3 brazil — stacked)', () => {
+    expect(multiplierFor('final', 'Brazil', 'Argentina')).toBe(9)
+  })
+
+  it('Brazil semi-final = 7.5x (2.5 stage * 3 brazil)', () => {
+    expect(multiplierFor('sf', 'Brazil', 'Germany')).toBe(7.5)
+  })
+
+  it('Brazil round of 16 = 4.5x (1.5 stage * 3 brazil)', () => {
+    expect(multiplierFor('r16', 'Brazil', 'Croatia')).toBe(4.5)
   })
 
   it('Argentina vs Spain semi-final = 2.5x (no Brazil)', () => {

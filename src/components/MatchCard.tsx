@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useT, useLocale, bcp47 } from '@/i18n'
+import { multiplierFor } from '@/scoring'
 import type { Match, Prediction, Stage } from '@/types'
 import { getTeamEmblemUrl } from '@/utils/emblems'
 
@@ -42,7 +43,7 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
   const t = useT()
   const { locale } = useLocale()
   const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
-  const isBrazil = match.homeTeam === 'Brazil' || match.awayTeam === 'Brazil'
+  const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
   const isLocked = Date.now() >= match.kickoffAt
   const showPickBadge = !!myPrediction
   const showMissingBadge = !myPrediction && !isLocked
@@ -58,9 +59,9 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
       <div className="relative flex items-center justify-between text-sm text-slate-400 mb-6">
         <span className="flex items-center gap-2 font-medium tracking-wide">
           <span>{stageLabel}</span>
-          {isBrazil && (
+          {mult > 1 && (
             <span className="text-xs font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded px-2 py-0.5 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
-              3×
+              {mult}×
             </span>
           )}
         </span>
@@ -81,14 +82,14 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
 
       <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-x-2 sm:gap-x-6 w-full">
         <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-1.5 sm:gap-4 min-w-0">
-          <span className="hidden sm:block truncate text-right font-bold text-2xl text-slate-200 group-hover:text-white transition-colors min-w-0">{match.homeTeam}</span>
-          <img 
-            src={getTeamEmblemUrl(match.homeTeam)} 
-            alt={`${match.homeTeam} emblem`}
+          <span className="hidden sm:block truncate text-right font-bold text-2xl text-slate-200 group-hover:text-white transition-colors min-w-0">{t.team(match.homeTeam)}</span>
+          <img
+            src={getTeamEmblemUrl(match.homeTeam)}
+            alt={`${t.team(match.homeTeam)} emblem`}
             className="w-12 h-12 sm:w-16 sm:h-16 object-contain drop-shadow-md shrink-0"
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
           />
-          <span className="sm:hidden text-center font-bold text-[13px] leading-tight text-slate-200 group-hover:text-white transition-colors line-clamp-2 px-1">{match.homeTeam}</span>
+          <span className="sm:hidden text-center font-bold text-[13px] leading-tight text-slate-200 group-hover:text-white transition-colors line-clamp-2 px-1">{t.team(match.homeTeam)}</span>
         </div>
         
         <div className="px-1 sm:px-2 text-slate-500 shrink-0 text-center flex items-center justify-center">
@@ -102,14 +103,14 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1.5 sm:gap-4 min-w-0">
-          <img 
-            src={getTeamEmblemUrl(match.awayTeam)} 
-            alt={`${match.awayTeam} emblem`}
+          <img
+            src={getTeamEmblemUrl(match.awayTeam)}
+            alt={`${t.team(match.awayTeam)} emblem`}
             className="w-12 h-12 sm:w-16 sm:h-16 object-contain drop-shadow-md shrink-0"
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
           />
-          <span className="sm:hidden text-center font-bold text-[13px] leading-tight text-slate-200 group-hover:text-white transition-colors line-clamp-2 px-1">{match.awayTeam}</span>
-          <span className="hidden sm:block truncate text-left font-bold text-2xl text-slate-200 group-hover:text-white transition-colors min-w-0">{match.awayTeam}</span>
+          <span className="sm:hidden text-center font-bold text-[13px] leading-tight text-slate-200 group-hover:text-white transition-colors line-clamp-2 px-1">{t.team(match.awayTeam)}</span>
+          <span className="hidden sm:block truncate text-left font-bold text-2xl text-slate-200 group-hover:text-white transition-colors min-w-0">{t.team(match.awayTeam)}</span>
         </div>
       </div>
 

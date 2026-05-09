@@ -33,6 +33,7 @@ export interface UserProfile {
   displayName: string
   role: 'player' | 'admin'
   email: string
+  paid?: boolean
 }
 
 export interface UserScore {
