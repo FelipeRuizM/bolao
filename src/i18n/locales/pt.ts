@@ -43,6 +43,9 @@ const pt: typeof en = {
     title: 'Jogos',
     loading: 'Carregando…',
     noMatches: 'Ainda sem jogos. O admin precisa importar a tabela na página Admin.',
+    filterUpcoming: 'Próximos',
+    filterAll: 'Todos',
+    noUpcoming: 'Nenhum jogo próximo. Mude para "Todos" para ver jogos encerrados.',
   },
   matchCard: {
     vs: 'x',

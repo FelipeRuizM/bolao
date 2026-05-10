@@ -41,6 +41,9 @@ const en = {
     title: 'Matches',
     loading: 'Loading…',
     noMatches: 'No matches yet. Admin needs to import fixtures from the Admin page.',
+    filterUpcoming: 'Upcoming',
+    filterAll: 'All',
+    noUpcoming: 'No upcoming matches. Switch to "All" to see finished matches.',
   },
   matchCard: {
     vs: 'vs',

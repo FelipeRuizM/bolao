@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useMatches } from '@/hooks/useMatches'
 import { useMyPredictions } from '@/hooks/usePrediction'
 import { useAuth } from '@/hooks/useAuth'
@@ -6,6 +6,8 @@ import { useSync } from '@/hooks/useSync'
 import { useLocale, useT, bcp47 } from '@/i18n'
 import { MatchCard } from '@/components/MatchCard'
 import type { Match } from '@/types'
+
+type Filter = 'upcoming' | 'all'
 
 function dateKey(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10)
@@ -23,20 +25,56 @@ export function Matches() {
   const { locale } = useLocale()
   const t = useT()
   useSync()
+  const [filter, setFilter] = useState<Filter>('upcoming')
+
+  const hasFinished = useMemo(() => !!matches && matches.some((m) => m.status === 'FT'), [matches])
+
+  const visibleMatches = useMemo(() => {
+    if (!matches) return null
+    return filter === 'all' ? matches : matches.filter((m) => m.status !== 'FT')
+  }, [matches, filter])
 
   const grouped = useMemo(() => {
-    if (!matches) return null
+    if (!visibleMatches) return null
     const groups: Record<string, Match[]> = {}
-    for (const m of matches) {
+    for (const m of visibleMatches) {
       const k = dateKey(m.kickoffAt)
       ;(groups[k] ??= []).push(m)
     }
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
-  }, [matches])
+  }, [visibleMatches])
 
   return (
     <div className="max-w-5xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-6">
-      <h1 className="text-2xl font-bold px-1">{t('matches.title')}</h1>
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h1 className="text-2xl font-bold">{t('matches.title')}</h1>
+        {hasFinished && (
+          <div className="flex rounded-lg bg-slate-800/60 border border-slate-700 p-0.5 text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setFilter('upcoming')}
+              className={`px-3 py-1.5 rounded-md transition-colors ${
+                filter === 'upcoming'
+                  ? 'bg-slate-700 text-slate-100'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t('matches.filterUpcoming')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter('all')}
+              className={`px-3 py-1.5 rounded-md transition-colors ${
+                filter === 'all'
+                  ? 'bg-slate-700 text-slate-100'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t('matches.filterAll')}
+            </button>
+          </div>
+        )}
+      </div>
 
       {error && (
         <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded p-3">
@@ -47,6 +85,12 @@ export function Matches() {
       {matches !== null && matches.length === 0 && !error && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">
           {t('matches.noMatches')}
+        </div>
+      )}
+
+      {visibleMatches !== null && visibleMatches.length === 0 && matches !== null && matches.length > 0 && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">
+          {t('matches.noUpcoming')}
         </div>
       )}
 
