@@ -4,8 +4,11 @@
  *   1. Fetch latest TheSportsDB events for the World Cup.
  *   2. Apply any new statuses/scores to /matches.
  *   3. Recompute every player's total in /scores.
- *   4. Write a snapshot of totals to /scoreHistory/{YYYY-MM-DD}/{uid}
- *      so the rank-over-time chart has a fresh data point each day.
+ *   4. Rebuild /scoreHistory as one snapshot per FT match: for each finished
+ *      match (in kickoff order), write totals computed against only the FT
+ *      matches with kickoffAt <= that match. Keyed by
+ *      `{kickoffAt}_{matchId}` so lexical sort = chronological order. The
+ *      rank-over-time chart then has a point per match instead of per day.
  *
  * Auth: Firebase Admin SDK with a service account key supplied via
  * FIREBASE_SERVICE_ACCOUNT (raw JSON string) and FIREBASE_DATABASE_URL.
@@ -29,31 +32,6 @@ function initAdmin(): admin.database.Database {
   const credential = admin.credential.cert(JSON.parse(serviceAccountJson))
   admin.initializeApp({ credential, databaseURL })
   return admin.database()
-}
-
-/**
- * The date label for the snapshot, in BRT (UTC-3, no DST).
- * The cron fires at 00:00 BRT — we look back 1s so the label is the day
- * that just ended (e.g. cron at 00:00 on the 15th writes label "...-14").
- */
-function brtDateLabel(now: number = Date.now()): string {
-  const oneSecondAgoMs = now - 1000
-  const brt = new Date(oneSecondAgoMs - 3 * 60 * 60 * 1000)
-  return brt.toISOString().slice(0, 10)
-}
-
-/**
- * Reads --date YYYY-MM-DD from CLI args and returns it if valid, else null.
- * Lets the user backfill past days locally without waiting for the cron.
- */
-function parseDateArg(): string | null {
-  const idx = process.argv.indexOf('--date')
-  if (idx === -1) return null
-  const val = process.argv[idx + 1]
-  if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-    throw new Error(`--date expects YYYY-MM-DD, got: ${val ?? '(missing)'}`)
-  }
-  return val
 }
 
 async function main(): Promise<void> {
@@ -114,20 +92,49 @@ async function main(): Promise<void> {
     bonusAnswers: config.bonusAnswers,
   })
 
-  const dateLabel = parseDateArg() ?? brtDateLabel()
-  console.log(`Writing scores + snapshot for ${dateLabel}…`)
-
-  const writes: Record<string, unknown> = {}
+  const scoreWrites: Record<string, unknown> = {}
   for (const [uid, score] of Object.entries(computed)) {
-    writes[`scores/${uid}`] = score
-    writes[`scoreHistory/${dateLabel}/${uid}`] = score.total
+    scoreWrites[`scores/${uid}`] = score
+  }
+  if (Object.keys(scoreWrites).length > 0) {
+    await db.ref().update(scoreWrites)
   }
 
-  if (Object.keys(writes).length > 0) {
-    await db.ref().update(writes)
+  // Rebuild scoreHistory from scratch: wipe, then write one snapshot per FT
+  // match (kickoff order). Two writes because RTDB rejects shallow-null + deep
+  // writes on the same path in one update.
+  const ftMatches = Object.values(matches)
+    .filter((m) => m.status === 'FT' && m.score)
+    .sort((a, b) => a.kickoffAt - b.kickoffAt || a.id.localeCompare(b.id))
+
+  console.log(`Rebuilding scoreHistory with ${ftMatches.length} per-match snapshot(s)…`)
+  await db.ref('scoreHistory').remove()
+
+  const historyWrites: Record<string, unknown> = {}
+  for (const m of ftMatches) {
+    const matchesUpTo: Record<string, Match> = {}
+    for (const [id, mm] of Object.entries(matches)) {
+      if (mm.kickoffAt <= m.kickoffAt) matchesUpTo[id] = mm
+    }
+    const snapshot = computeAllUserScores({
+      matches: matchesUpTo,
+      predictions,
+      users,
+      bonusPicks,
+      pointValues: config.pointValues,
+      bonusValues: config.bonusValues,
+      bonusAnswers: config.bonusAnswers,
+    })
+    const key = `${m.kickoffAt}_${m.id}`
+    for (const [uid, score] of Object.entries(snapshot)) {
+      historyWrites[`scoreHistory/${key}/${uid}`] = score.total
+    }
+  }
+  if (Object.keys(historyWrites).length > 0) {
+    await db.ref().update(historyWrites)
   }
 
-  console.log(`Done. ${Object.keys(computed).length} player(s) updated; snapshot=${dateLabel}.`)
+  console.log(`Done. ${Object.keys(computed).length} player(s) updated; ${ftMatches.length} match snapshot(s).`)
 }
 
 main()

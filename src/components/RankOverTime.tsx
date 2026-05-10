@@ -10,8 +10,8 @@ import {
   YAxis,
 } from 'recharts'
 import { db } from '@/firebase'
-import { useT, useLocale, bcp47 } from '@/i18n'
-import type { UserProfile } from '@/types'
+import { useT } from '@/i18n'
+import type { Match, UserProfile } from '@/types'
 
 const COLORS = [
   '#facc15', // amber-400 (brand)
@@ -34,9 +34,9 @@ interface Props {
 
 export function RankOverTime({ highlightUid, filterUids }: Props) {
   const t = useT()
-  const { locale } = useLocale()
   const [history, setHistory] = useState<Record<string, Record<string, number>> | null>(null)
   const [users, setUsers] = useState<Record<string, UserProfile> | null>(null)
+  const [matches, setMatches] = useState<Record<string, Match> | null>(null)
 
   useEffect(() => {
     return onValue(ref(db, 'scoreHistory'), (snap) => {
@@ -50,11 +50,19 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
     })
   }, [])
 
-  const { chartData, lines } = useMemo(() => {
-    if (!history || !users) return { chartData: [], lines: [] }
+  useEffect(() => {
+    return onValue(ref(db, 'matches'), (snap) => {
+      setMatches((snap.val() ?? {}) as Record<string, Match>)
+    })
+  }, [])
 
-    const dates = Object.keys(history).sort()
-    if (dates.length === 0) return { chartData: [], lines: [] }
+  const { chartData, lines } = useMemo(() => {
+    if (!history || !users || !matches) return { chartData: [], lines: [] }
+
+    // Keys are `{kickoffAt}_{matchId}` — kickoffAt is a fixed-width ms
+    // timestamp, so a lexical sort matches chronological order.
+    const keys = Object.keys(history).sort()
+    if (keys.length === 0) return { chartData: [], lines: [] }
 
     const allUids = Object.keys(users).sort()
     const uidColor: Record<string, string> = {}
@@ -63,10 +71,15 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
     const uids = filterUids ? allUids.filter((u) => filterUids.includes(u)) : allUids
     if (uids.length === 0) return { chartData: [], lines: [] }
 
-    const data = dates.map((date) => {
-      const totals = history[date] ?? {}
+    const data = keys.map((key, i) => {
+      const totals = history[key] ?? {}
       const ranks = computeRanks(totals, uids)
-      const point: Record<string, string | number> = { date: formatDate(date, bcp47(locale)) }
+      const matchId = key.slice(key.indexOf('_') + 1)
+      const m = matches[matchId]
+      const point: Record<string, string | number> = {
+        idx: i + 1,
+        matchLabel: m ? formatMatchLabel(m) : matchId,
+      }
       for (const uid of uids) point[uid] = ranks[uid] ?? uids.length
       return point
     })
@@ -78,9 +91,9 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
     }))
 
     return { chartData: data, lines: lineDefs }
-  }, [history, users, locale, filterUids])
+  }, [history, users, matches, filterUids])
 
-  if (history === null || users === null) return null
+  if (history === null || users === null || matches === null) return null
   if (chartData.length === 0) return null
 
   return (
@@ -93,7 +106,7 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
           <LineChart data={chartData} margin={{ top: 5, right: 12, left: -10, bottom: 0 }}>
             <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
             <XAxis
-              dataKey="date"
+              dataKey="idx"
               tick={{ fill: '#94a3b8', fontSize: 11 }}
               stroke="#334155"
               tickMargin={6}
@@ -115,6 +128,10 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
               }}
               labelStyle={{ color: '#e2e8f0', fontWeight: 600 }}
               itemStyle={{ color: '#e2e8f0' }}
+              labelFormatter={(_label, payload) => {
+                const p = payload?.[0]?.payload as { matchLabel?: string } | undefined
+                return p?.matchLabel ?? ''
+              }}
               formatter={(value, name) => {
                 const line = lines.find((l) => l.uid === name)
                 return [`#${value}`, line?.name ?? String(name)]
@@ -174,11 +191,7 @@ function computeRanks(
   return ranks
 }
 
-function formatDate(iso: string, locale: string): string {
-  const [y, m, d] = iso.split('-').map(Number)
-  if (!y || !m || !d) return iso
-  return new Date(y, m - 1, d).toLocaleDateString(locale, {
-    month: 'short',
-    day: 'numeric',
-  })
+function formatMatchLabel(m: Match): string {
+  if (m.score) return `${m.homeTeam} ${m.score.home}–${m.score.away} ${m.awayTeam}`
+  return `${m.homeTeam} – ${m.awayTeam}`
 }
