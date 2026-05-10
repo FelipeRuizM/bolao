@@ -71,17 +71,25 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
     const uids = filterUids ? allUids.filter((u) => filterUids.includes(u)) : allUids
     if (uids.length === 0) return { chartData: [], lines: [] }
 
-    const data = keys.map((key, i) => {
+    // Synthetic "start" point so every line begins at 0 before the first
+     // match snapshot.
+    const startPoint: Record<string, string | number> = {
+      idx: 0,
+      matchLabel: t('home.pointsStart'),
+    }
+    for (const uid of uids) startPoint[uid] = 0
+
+    const data: Record<string, string | number>[] = [startPoint]
+    keys.forEach((key, i) => {
       const totals = history[key] ?? {}
-      const ranks = computeRanks(totals, uids)
       const matchId = key.slice(key.indexOf('_') + 1)
       const m = matches[matchId]
       const point: Record<string, string | number> = {
         idx: i + 1,
         matchLabel: m ? formatMatchLabel(m) : matchId,
       }
-      for (const uid of uids) point[uid] = ranks[uid] ?? uids.length
-      return point
+      for (const uid of uids) point[uid] = totals[uid] ?? 0
+      data.push(point)
     })
 
     const lineDefs = uids.map((uid) => ({
@@ -91,7 +99,7 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
     }))
 
     return { chartData: data, lines: lineDefs }
-  }, [history, users, matches, filterUids])
+  }, [history, users, matches, filterUids, t])
 
   if (history === null || users === null || matches === null) return null
   if (chartData.length === 0) return null
@@ -99,7 +107,7 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
   return (
     <section className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4">
       <h2 className="text-sm sm:text-base font-bold text-slate-200 mb-3 px-1">
-        {t('home.rankOverTime')}
+        {t('home.pointsOverTime')}
       </h2>
       <div className="h-64 sm:h-80 -mx-2">
         <ResponsiveContainer width="100%" height="100%">
@@ -112,12 +120,10 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
               tickMargin={6}
             />
             <YAxis
-              reversed
-              domain={[1, lines.length || 1]}
-              allowDecimals={false}
+              allowDecimals
               tick={{ fill: '#94a3b8', fontSize: 11 }}
               stroke="#334155"
-              width={28}
+              width={36}
             />
             <Tooltip
               contentStyle={{
@@ -134,7 +140,7 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
               }}
               formatter={(value, name) => {
                 const line = lines.find((l) => l.uid === name)
-                return [`#${value}`, line?.name ?? String(name)]
+                return [`${value} pts`, line?.name ?? String(name)]
               }}
             />
             {lines.map((line) => (
@@ -167,28 +173,6 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
       </div>
     </section>
   )
-}
-
-/** Competition ranking — ties share a rank, next user skips ahead. */
-function computeRanks(
-  totals: Record<string, number>,
-  uids: string[],
-): Record<string, number> {
-  const filled = uids.map((uid) => ({ uid, total: totals[uid] ?? 0 }))
-  filled.sort((a, b) => b.total - a.total)
-  const ranks: Record<string, number> = {}
-  let lastTotal: number | null = null
-  let lastRank = 0
-  let idx = 0
-  for (const { uid, total } of filled) {
-    idx++
-    if (total !== lastTotal) {
-      lastRank = idx
-      lastTotal = total
-    }
-    ranks[uid] = lastRank
-  }
-  return ranks
 }
 
 function formatMatchLabel(m: Match): string {
