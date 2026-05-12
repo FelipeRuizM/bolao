@@ -1,7 +1,7 @@
 import { get, ref, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { computeAllUserScores } from './computeAll'
-import type { BonusAnswers, BonusValues, PointValues } from './index'
+import type { BonusAnswers, BonusValues, PointValues, StageMultipliers } from './index'
 import type { BonusPick, Match, Prediction, UserScore } from '@/types'
 
 /**
@@ -27,6 +27,7 @@ export async function recomputeAllUserScores(): Promise<void> {
     pointValues?: PointValues
     bonusValues?: BonusValues
     bonusAnswers?: BonusAnswers
+    stageMultipliers?: StageMultipliers
   }
   const users = (usersSnap.val() ?? {}) as Record<string, unknown>
 
@@ -60,6 +61,7 @@ export async function recomputeAllUserScores(): Promise<void> {
     pointValues: config.pointValues,
     bonusValues: config.bonusValues,
     bonusAnswers: config.bonusAnswers,
+    stageMultipliers: config.stageMultipliers,
   })
 
   const updates: Record<string, UserScore> = {}

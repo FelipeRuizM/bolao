@@ -7,27 +7,17 @@
  * predictions, watch the kickoff lock kick in, then use the admin Score
  * Override section to flip the result and confirm scoring works end-to-end.
  *
- * Auth: same env vars as daily-snapshot.ts:
- *   FIREBASE_SERVICE_ACCOUNT  (raw JSON)
- *   FIREBASE_DATABASE_URL
+ * Auth: see scripts/_firebase-admin.ts.
  *
  * Run:  npx tsx scripts/seed-demo-matches.ts
  * Tear down with: npx tsx scripts/clear-demo-matches.ts
  */
-import admin from 'firebase-admin'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 import type { Match } from '../src/types'
+import { initAdmin } from './_firebase-admin'
 
-export function initAdmin(): admin.database.Database {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT
-  const databaseURL = process.env.FIREBASE_DATABASE_URL
-  if (!serviceAccountJson) throw new Error('FIREBASE_SERVICE_ACCOUNT env var is required')
-  if (!databaseURL) throw new Error('FIREBASE_DATABASE_URL env var is required')
-  const credential = admin.credential.cert(JSON.parse(serviceAccountJson))
-  admin.initializeApp({ credential, databaseURL })
-  return admin.database()
-}
+export { initAdmin }
 
 function minutesFromNow(min: number): number {
   return Date.now() + min * 60_000

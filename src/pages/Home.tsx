@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { HelpCircle } from 'lucide-react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
@@ -66,7 +68,17 @@ export function Home() {
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-4">
       <div className="flex items-center justify-between gap-3 px-1">
-        <h1 className="text-2xl font-bold">{t('home.title')}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold">{t('home.title')}</h1>
+          <Link
+            to="/points"
+            aria-label={t('points.helpIconLabel')}
+            title={t('points.helpIconLabel')}
+            className="text-slate-400 hover:text-brand-400 transition-colors"
+          >
+            <HelpCircle size={20} />
+          </Link>
+        </div>
         {rows !== null && rows.some((r) => r.paid) && (
           <div className="flex rounded-lg bg-slate-800/60 border border-slate-700 p-0.5 text-xs font-medium">
             <button

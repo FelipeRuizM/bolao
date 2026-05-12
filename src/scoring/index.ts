@@ -57,15 +57,17 @@ export function computeBonusPoints(
   return { tournamentWinner: tw, topScorer: ts, total: tw + ts }
 }
 
-export const STAGE_MULTIPLIERS: Record<Stage, number> = {
+export const DEFAULT_STAGE_MULTIPLIERS: Record<Stage, number> = {
   group: 1,
-  r32: 1,
+  r32: 1.25,
   r16: 1.5,
   qf: 2,
   sf: 2.5,
   '3rd': 2.5,
   final: 3,
 }
+
+export type StageMultipliers = Record<Stage, number>
 
 export const BRAZIL_MULTIPLIER = 3
 const BRAZIL_NAME = 'Brazil'
@@ -103,8 +105,13 @@ export function classifyTier(prediction: Score, actual: Score): Tier {
   return 'outcome'
 }
 
-export function multiplierFor(stage: Stage, homeTeam: string, awayTeam: string): number {
-  const stageMult = STAGE_MULTIPLIERS[stage]
+export function multiplierFor(
+  stage: Stage,
+  homeTeam: string,
+  awayTeam: string,
+  stageMultipliers: StageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
+): number {
+  const stageMult = stageMultipliers[stage]
   const brazilMult = homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME ? BRAZIL_MULTIPLIER : 1
   return stageMult * brazilMult
 }
@@ -116,6 +123,7 @@ export interface ComputePointsArgs {
   homeTeam: string
   awayTeam: string
   pointValues?: PointValues
+  stageMultipliers?: StageMultipliers
 }
 
 export interface ComputePointsResult {
@@ -132,9 +140,10 @@ export function computePoints({
   homeTeam,
   awayTeam,
   pointValues = DEFAULT_POINTS,
+  stageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
 }: ComputePointsArgs): ComputePointsResult {
   const tier = classifyTier(prediction, actual)
   const base = tier === 'wrong' ? 0 : pointValues[tier]
-  const multiplier = multiplierFor(stage, homeTeam, awayTeam)
+  const multiplier = multiplierFor(stage, homeTeam, awayTeam, stageMultipliers)
   return { tier, base, multiplier, total: base * multiplier }
 }

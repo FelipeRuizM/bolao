@@ -3,9 +3,11 @@ import {
   computeBonusPoints,
   DEFAULT_POINTS,
   DEFAULT_BONUS_VALUES,
+  DEFAULT_STAGE_MULTIPLIERS,
   type BonusAnswers,
   type BonusValues,
   type PointValues,
+  type StageMultipliers,
 } from './index'
 import type { BonusPick, Match, Prediction, UserScore } from '../types'
 
@@ -17,6 +19,7 @@ export interface ComputeAllInputs {
   pointValues?: PointValues
   bonusValues?: BonusValues
   bonusAnswers?: BonusAnswers
+  stageMultipliers?: StageMultipliers
 }
 
 export function computeAllUserScores({
@@ -27,6 +30,7 @@ export function computeAllUserScores({
   pointValues = DEFAULT_POINTS,
   bonusValues = DEFAULT_BONUS_VALUES,
   bonusAnswers = {},
+  stageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
 }: ComputeAllInputs): Record<string, UserScore> {
   const out: Record<string, UserScore> = {}
 
@@ -45,6 +49,7 @@ export function computeAllUserScores({
         homeTeam: match.homeTeam,
         awayTeam: match.awayTeam,
         pointValues,
+        stageMultipliers,
       })
       perMatch[matchId] = result.total
       total += result.total

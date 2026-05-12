@@ -4,15 +4,18 @@ import { db } from '@/firebase'
 import {
   DEFAULT_BONUS_VALUES,
   DEFAULT_POINTS,
+  DEFAULT_STAGE_MULTIPLIERS,
   type BonusAnswers,
   type BonusValues,
   type PointValues,
+  type StageMultipliers,
 } from '@/scoring'
 
 export interface Config {
   pointValues: PointValues
   bonusValues: BonusValues
   bonusAnswers: BonusAnswers
+  stageMultipliers: StageMultipliers
   allowedEmails: string[]
   lockBonusAt: number | null
 }
@@ -21,6 +24,7 @@ interface RawConfig {
   pointValues?: PointValues
   bonusValues?: BonusValues
   bonusAnswers?: BonusAnswers
+  stageMultipliers?: StageMultipliers
   allowedEmails?: string[] | Record<string, string>
   lockBonusAt?: number
 }
@@ -41,6 +45,7 @@ export function useConfig() {
         pointValues: val.pointValues ?? DEFAULT_POINTS,
         bonusValues: val.bonusValues ?? DEFAULT_BONUS_VALUES,
         bonusAnswers: val.bonusAnswers ?? {},
+        stageMultipliers: val.stageMultipliers ?? DEFAULT_STAGE_MULTIPLIERS,
         allowedEmails: allowed.filter((e): e is string => typeof e === 'string'),
         lockBonusAt: typeof val.lockBonusAt === 'number' ? val.lockBonusAt : null,
       })

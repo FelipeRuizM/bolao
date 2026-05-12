@@ -72,12 +72,16 @@ describe('multiplierFor', () => {
     expect(multiplierFor('final', 'Argentina', 'France')).toBe(3)
   })
 
-  it('round of 32 (no Brazil) = 1x — admin can override via /meta/config', () => {
-    expect(multiplierFor('r32', 'Spain', 'Morocco')).toBe(1)
+  it('round of 32 (no Brazil) = 1.25x — admin can override via /meta/config', () => {
+    expect(multiplierFor('r32', 'Spain', 'Morocco')).toBe(1.25)
   })
 
-  it('round of 32 with Brazil = 3x', () => {
-    expect(multiplierFor('r32', 'Brazil', 'Senegal')).toBe(3)
+  it('round of 32 with Brazil = 3.75x (1.25 stage * 3 brazil)', () => {
+    expect(multiplierFor('r32', 'Brazil', 'Senegal')).toBe(3.75)
+  })
+
+  it('explicit stageMultipliers override beats the default table', () => {
+    expect(multiplierFor('r32', 'Spain', 'Morocco', { group: 1, r32: 2, r16: 2.5, qf: 3, sf: 4, '3rd': 4, final: 5 })).toBe(2)
   })
 })
 

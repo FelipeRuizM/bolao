@@ -5,6 +5,7 @@ import type {
   BonusAnswers,
   BonusValues,
   PointValues,
+  StageMultipliers,
 } from '@/scoring'
 import type { MatchStatus, Score } from '@/types'
 
@@ -23,6 +24,11 @@ export async function overrideMatchResult(
 
 export async function setPointValues(values: PointValues): Promise<void> {
   await set(ref(db, 'meta/config/pointValues'), values)
+  await recomputeAllUserScores()
+}
+
+export async function setStageMultipliers(values: StageMultipliers): Promise<void> {
+  await set(ref(db, 'meta/config/stageMultipliers'), values)
   await recomputeAllUserScores()
 }
 

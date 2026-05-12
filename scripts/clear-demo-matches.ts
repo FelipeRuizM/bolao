@@ -1,27 +1,20 @@
 /**
- * Removes demo matches and their predictions, then recomputes scores.
+ * Removes demo matches and their predictions, recomputes scores, and wipes
+ * /scoreHistory so the rank-over-time chart doesn't keep referencing deleted
+ * matches. The next daily-snapshot cron rebuilds /scoreHistory from scratch.
  * Looks for any /matches/<id> where id starts with "demo-".
  *
  * Run: npx tsx scripts/clear-demo-matches.ts
  */
-import admin from 'firebase-admin'
 import { computeAllUserScores } from '../src/scoring/computeAll'
 import type {
   BonusAnswers,
   BonusValues,
   PointValues,
+  StageMultipliers,
 } from '../src/scoring/index'
 import type { BonusPick, Match, Prediction } from '../src/types'
-
-function initAdmin(): admin.database.Database {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT
-  const databaseURL = process.env.FIREBASE_DATABASE_URL
-  if (!serviceAccountJson) throw new Error('FIREBASE_SERVICE_ACCOUNT env var is required')
-  if (!databaseURL) throw new Error('FIREBASE_DATABASE_URL env var is required')
-  const credential = admin.credential.cert(JSON.parse(serviceAccountJson))
-  admin.initializeApp({ credential, databaseURL })
-  return admin.database()
-}
+import { initAdmin } from './_firebase-admin'
 
 async function main(): Promise<void> {
   const db = initAdmin()
@@ -61,6 +54,7 @@ async function main(): Promise<void> {
     pointValues?: PointValues
     bonusValues?: BonusValues
     bonusAnswers?: BonusAnswers
+    stageMultipliers?: StageMultipliers
   }
   const users = (usersSnap.val() ?? {}) as Record<string, unknown>
   const bonusPicks = (bonusPicksSnap.val() ?? {}) as Record<string, BonusPick>
@@ -73,6 +67,7 @@ async function main(): Promise<void> {
     pointValues: config.pointValues,
     bonusValues: config.bonusValues,
     bonusAnswers: config.bonusAnswers,
+    stageMultipliers: config.stageMultipliers,
   })
 
   const scoreUpdates: Record<string, unknown> = {}
@@ -82,6 +77,11 @@ async function main(): Promise<void> {
   if (Object.keys(scoreUpdates).length > 0) {
     await db.ref().update(scoreUpdates)
   }
+
+  // Wipe per-match snapshots — they still reference the deleted demo matches.
+  // The next daily-snapshot cron rebuilds /scoreHistory from real matches.
+  await db.ref('scoreHistory').remove()
+  console.log('Wiped /scoreHistory (will be rebuilt on the next daily-snapshot run).')
 
   // Suppress unused-import warning — `predictions` was read only for the delete summary.
   void predictions

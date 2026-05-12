@@ -6,7 +6,6 @@ import { useT } from '@/i18n'
 import { AdminButton, AdminCard, StatusLine } from '@/components/admin/AdminCard'
 import { RecomputeSection } from '@/components/admin/RecomputeSection'
 import { ScoreOverrideSection } from '@/components/admin/ScoreOverrideSection'
-import { PointValuesSection } from '@/components/admin/PointValuesSection'
 import { BonusAdminSection } from '@/components/admin/BonusAdminSection'
 import { AllowlistSection } from '@/components/admin/AllowlistSection'
 import { PlayersSection } from '@/components/admin/PlayersSection'
@@ -89,7 +88,6 @@ export function Admin() {
       <SyncSection />
       <RecomputeSection />
       <ScoreOverrideSection />
-      <PointValuesSection />
       <BonusAdminSection />
       <AllowlistSection />
       <PlayersSection />
