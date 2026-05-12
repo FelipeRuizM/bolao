@@ -110,12 +110,15 @@ async function main(): Promise<void> {
   console.log(`Rebuilding scoreHistory with ${ftMatches.length} per-match snapshot(s)…`)
   await db.ref('scoreHistory').remove()
 
+  // Walk the sorted ftMatches array by index so simultaneous kickoffs step up
+  // one match at a time (tiebreak = id.localeCompare in the sort above).
+  // Using `kickoffAt <= m.kickoffAt` would collapse all tied matches into the
+  // earliest snapshot.
   const historyWrites: Record<string, unknown> = {}
+  const matchesUpTo: Record<string, Match> = {}
+
   for (const m of ftMatches) {
-    const matchesUpTo: Record<string, Match> = {}
-    for (const [id, mm] of Object.entries(matches)) {
-      if (mm.kickoffAt <= m.kickoffAt) matchesUpTo[id] = mm
-    }
+    matchesUpTo[m.id] = m
     const snapshot = computeAllUserScores({
       matches: matchesUpTo,
       predictions,
