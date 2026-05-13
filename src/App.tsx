@@ -10,6 +10,7 @@ import { MatchDetail } from '@/pages/MatchDetail'
 import { Me } from '@/pages/Me'
 import { Bonus } from '@/pages/Bonus'
 import { Points } from '@/pages/Points'
+import { Profile } from '@/pages/Profile'
 import { Admin } from '@/pages/Admin'
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/me" element={<ProtectedRoute><Me /></ProtectedRoute>} />
             <Route path="/bonus" element={<ProtectedRoute><Bonus /></ProtectedRoute>} />
             <Route path="/points" element={<ProtectedRoute><Points /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
           </Routes>
         </HashRouter>

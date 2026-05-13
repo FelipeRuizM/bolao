@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, User, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useT } from '@/i18n'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
@@ -45,6 +45,20 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2">
             <LocaleSwitcher compact />
+            <NavLink
+              to="/profile"
+              aria-label={t('nav.profile')}
+              title={t('nav.profile')}
+              className={({ isActive }) =>
+                `p-2 rounded transition-colors ${
+                  isActive
+                    ? 'bg-brand-500/10 text-brand-400'
+                    : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+                }`
+              }
+            >
+              <User size={18} />
+            </NavLink>
             <button
               onClick={signOutNow}
               className="text-sm px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 transition-colors text-slate-300 hover:text-white"
@@ -72,6 +86,7 @@ export function Navbar() {
             <NavLink to="/matches" className={linkClass} onClick={closeMenu}>{t('nav.matches')}</NavLink>
             <NavLink to="/me" className={linkClass} onClick={closeMenu}>{t('nav.myPicks')}</NavLink>
             <NavLink to="/bonus" className={linkClass} onClick={closeMenu}>{t('nav.bonus')}</NavLink>
+            <NavLink to="/profile" className={linkClass} onClick={closeMenu}>{t('nav.profile')}</NavLink>
             {isAdmin && <NavLink to="/admin" className={linkClass} onClick={closeMenu}>{t('nav.admin')}</NavLink>}
             <div className="h-px bg-slate-800 my-2" />
             <div className="flex items-center justify-between px-2">
