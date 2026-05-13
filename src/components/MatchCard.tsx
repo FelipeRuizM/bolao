@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useT, useLocale, bcp47 } from '@/i18n'
+import { isPredictionOpen, predictionOpensAt } from '@/api/predictions'
 import { multiplierFor } from '@/scoring'
 import type { Match, Prediction, Stage } from '@/types'
 import { getTeamEmblemUrl } from '@/utils/emblems'
@@ -20,6 +21,10 @@ function formatKickoff(ms: number, locale: string): string {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function formatShortDate(ms: number, locale: string): string {
+  return new Date(ms).toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
 function StatusPill({ status }: { status: Match['status'] }) {
@@ -45,8 +50,10 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
   const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
   const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
   const isLocked = Date.now() >= match.kickoffAt
+  const predictionsOpen = isPredictionOpen(match.kickoffAt)
   const showPickBadge = !!myPrediction
-  const showMissingBadge = !myPrediction && !isLocked
+  const showMissingBadge = !myPrediction && !isLocked && predictionsOpen
+  const showOpensBadge = !myPrediction && !isLocked && !predictionsOpen
 
   return (
     <Link
@@ -74,6 +81,11 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
           {showMissingBadge && (
             <span className="text-xs font-semibold text-slate-400 border border-slate-700 rounded-md px-2 py-0.5">
               {t('matchCard.noPick')}
+            </span>
+          )}
+          {showOpensBadge && (
+            <span className="text-xs font-semibold text-slate-500 border border-slate-700/60 bg-slate-800/40 rounded-md px-2 py-0.5">
+              {t('matchCard.opensAt', { when: formatShortDate(predictionOpensAt(match.kickoffAt), bcp47(locale)) })}
             </span>
           )}
           <StatusPill status={match.status} />

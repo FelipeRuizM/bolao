@@ -10,10 +10,12 @@ import {
 } from '@/hooks/useBonus'
 import { submitBonusPicks } from '@/api/bonus'
 import { useT, useLocale, bcp47 } from '@/i18n'
+import { useConfig } from '@/hooks/useConfig'
 import {
   DEFAULT_BONUS_VALUES,
   computeBonusPoints,
   normalizeBonusAnswer,
+  type BonusValues,
 } from '@/scoring'
 
 function formatDateTime(ms: number, locale: string): string {
@@ -37,6 +39,8 @@ export function Bonus() {
   const { picks: allPicks, error: allPicksError } = useAllBonusPicks(isLocked)
   const users = useUsers()
   const answers = useBonusAnswers()
+  const config = useConfig()
+  const bonusValues = config?.bonusValues ?? DEFAULT_BONUS_VALUES
 
   const [winner, setWinner] = useState('')
   const [topScorer, setTopScorer] = useState('')
@@ -83,8 +87,8 @@ export function Bonus() {
     return <div className="p-6 text-slate-400">{t('matchDetail.loading')}</div>
   }
 
-  const winnerPts = DEFAULT_BONUS_VALUES.tournamentWinner
-  const scorerPts = DEFAULT_BONUS_VALUES.topScorer
+  const winnerPts = bonusValues.tournamentWinner
+  const scorerPts = bonusValues.topScorer
   const hasAnswers = !!answers.tournamentWinner || !!answers.topScorer
 
   return (
@@ -186,6 +190,7 @@ export function Bonus() {
           users={users}
           error={allPicksError}
           answers={answers}
+          bonusValues={bonusValues}
           currentUid={user?.uid}
         />
       )}
@@ -209,12 +214,14 @@ function EveryonesBonus({
   users,
   error,
   answers,
+  bonusValues,
   currentUid,
 }: {
   allPicks: Record<string, import('@/types').BonusPick> | null
   users: Record<string, import('@/types').UserProfile>
   error: string | null
   answers: import('@/scoring').BonusAnswers
+  bonusValues: BonusValues
   currentUid: string | undefined
 }) {
   const t = useT()
@@ -232,7 +239,7 @@ function EveryonesBonus({
         hasAnswers &&
         !!pick?.topScorer &&
         normalizeBonusAnswer(pick.topScorer) === normalizeBonusAnswer(answers.topScorer)
-      const points = pick ? computeBonusPoints(pick, answers).total : 0
+      const points = pick ? computeBonusPoints(pick, answers, bonusValues).total : 0
       return {
         uid,
         name: displayNameFor(uid, profile),
@@ -248,7 +255,7 @@ function EveryonesBonus({
       if (aHas !== bHas) return aHas - bHas
       return a.name.localeCompare(b.name)
     })
-  }, [users, allPicks, answers, hasAnswers])
+  }, [users, allPicks, answers, bonusValues, hasAnswers])
 
   return (
     <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">

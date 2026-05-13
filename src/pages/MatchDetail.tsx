@@ -4,7 +4,7 @@ import { useMatch } from '@/hooks/useMatches'
 import { useMyPrediction } from '@/hooks/usePrediction'
 import { useAuth } from '@/hooks/useAuth'
 import { useSync } from '@/hooks/useSync'
-import { submitPrediction } from '@/api/predictions'
+import { isPredictionOpen, predictionOpensAt, submitPrediction } from '@/api/predictions'
 import { ScoreStepper } from '@/components/ScoreStepper'
 import { EveryonesPicks } from '@/components/EveryonesPicks'
 import { useT, useLocale, bcp47 } from '@/i18n'
@@ -115,6 +115,8 @@ export function MatchDetail() {
   }
 
   const isLocked = Date.now() >= match.kickoffAt
+  const predictionsOpen = isPredictionOpen(match.kickoffAt)
+  const opensAt = predictionOpensAt(match.kickoffAt)
   const hasPrediction = !!myPrediction
 
   async function onSave(e: FormEvent) {
@@ -131,6 +133,20 @@ export function MatchDetail() {
     } finally {
       setBusy(false)
     }
+  }
+
+  if (!isLocked && !predictionsOpen) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
+        <MatchHeader match={match} />
+        <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-2">
+          <h2 className="font-semibold text-slate-200">{t('matchDetail.predictionsNotOpenHeading')}</h2>
+          <p className="text-sm text-slate-400">
+            {t('matchDetail.predictionsOpenAt', { when: formatKickoff(opensAt, bcp47(locale)) })}
+          </p>
+        </section>
+      </div>
+    )
   }
 
   if (!isLocked) {
