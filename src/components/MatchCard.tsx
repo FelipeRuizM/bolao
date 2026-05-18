@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { isPredictionOpen, predictionOpensAt } from '@/api/predictions'
-import { multiplierFor } from '@/scoring'
+import { isBrazilMatch, multiplierFor } from '@/scoring'
 import { useBigGame } from '@/hooks/useMetaConfig'
 import type { Match, Prediction, Stage } from '@/types'
 import { getTeamEmblemUrl } from '@/utils/emblems'
@@ -50,6 +50,7 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
   const { locale } = useLocale()
   const bigGame = useBigGame()
   const isBig = bigGame?.matchId === match.id
+  const isBrazil = isBrazilMatch(match.homeTeam, match.awayTeam)
   const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
   const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
     matchId: match.id,
@@ -67,7 +68,9 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
       className={`block relative overflow-hidden bg-slate-900 border rounded-2xl px-6 py-6 sm:px-8 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group ${
         isBig
           ? 'border-rose-500/40 hover:shadow-rose-500/20 hover:border-rose-500/60'
-          : 'border-slate-800/80 hover:shadow-brand-500/10 hover:border-slate-700/80'
+          : isBrazil
+            ? 'border-emerald-500/40 hover:shadow-emerald-500/20 hover:border-emerald-500/60'
+            : 'border-slate-800/80 hover:shadow-brand-500/10 hover:border-slate-700/80'
       }`}
     >
       {/* Decorative gradient blob */}
@@ -75,7 +78,9 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
         className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl transition-colors ${
           isBig
             ? 'bg-rose-500/10 group-hover:bg-rose-500/20'
-            : 'bg-brand-500/5 group-hover:bg-brand-500/10'
+            : isBrazil
+              ? 'bg-gradient-to-br from-emerald-500/15 to-yellow-400/10 group-hover:from-emerald-500/25 group-hover:to-yellow-400/15'
+              : 'bg-brand-500/5 group-hover:bg-brand-500/10'
         }`}
       />
 

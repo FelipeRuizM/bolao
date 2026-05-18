@@ -72,6 +72,10 @@ export type StageMultipliers = Record<Stage, number>
 export const BRAZIL_MULTIPLIER = 3
 const BRAZIL_NAME = 'Brazil'
 
+export function isBrazilMatch(homeTeam: string, awayTeam: string): boolean {
+  return homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME
+}
+
 export interface BigGameConfig {
   matchId: string
   multiplier: number

@@ -8,7 +8,7 @@ import { usePrizePerUser } from '@/hooks/useMetaConfig'
 import { useSync } from '@/hooks/useSync'
 import { useT } from '@/i18n'
 import { RankOverTime } from '@/components/RankOverTime'
-import { formatBRL } from '@/utils/currency'
+import { PRIZE_SHARES, formatBRL, splitPrize } from '@/utils/currency'
 import type { UserScore, UserProfile } from '@/types'
 
 interface LeaderboardRow {
@@ -117,22 +117,25 @@ export function Home() {
       {showPrize && (
         <div
           key={`${paidCount}-${prizePerUser}`}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/20 via-brand-500/10 to-transparent border border-brand-500/30 px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between gap-3 animate-fade-up"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/20 via-brand-500/10 to-transparent border border-brand-500/30 px-4 py-3 sm:px-5 sm:py-4 space-y-3 animate-fade-up"
         >
           <div className="absolute -top-8 -right-6 w-32 h-32 bg-brand-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative">
-            <div className="text-[10px] sm:text-xs uppercase tracking-wider text-brand-300/80 font-semibold">
-              {t('home.prizePoolLabel')}
+          <div className="relative flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] sm:text-xs uppercase tracking-wider text-brand-300/80 font-semibold">
+                {t('home.prizePoolLabel')}
+              </div>
+              <div className="text-xl sm:text-2xl font-extrabold text-brand-300 tabular-nums leading-tight mt-0.5">
+                {formatBRL(prizeTotal)}
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-brand-300 tabular-nums leading-tight mt-0.5">
-              {formatBRL(prizeTotal)}
+            <div className="text-right shrink-0">
+              <div className="text-[10px] sm:text-xs text-slate-400 tabular-nums">
+                {t('home.prizePoolBreakdown', { count: paidCount, amount: formatBRL(prizePerUser) })}
+              </div>
             </div>
           </div>
-          <div className="relative text-right shrink-0">
-            <div className="text-[10px] sm:text-xs text-slate-400 tabular-nums">
-              {t('home.prizePoolBreakdown', { count: paidCount, amount: formatBRL(prizePerUser) })}
-            </div>
-          </div>
+          <PrizeSplit total={prizeTotal} />
         </div>
       )}
 
@@ -172,6 +175,57 @@ export function Home() {
           <RankOverTime highlightUid={user?.uid ?? null} filterUids={filterUids} />
         </>
       )}
+    </div>
+  )
+}
+
+function PrizeSplit({ total }: { total: number }) {
+  const t = useT()
+  const split = splitPrize(total)
+  const slots = [
+    {
+      label: t('home.prizeFirst'),
+      amount: split.first,
+      pct: PRIZE_SHARES.first,
+      // gold
+      colorClasses: 'border-amber-400/50 bg-amber-400/10 text-amber-300',
+      pctClasses: 'text-amber-200/70',
+    },
+    {
+      label: t('home.prizeSecond'),
+      amount: split.second,
+      pct: PRIZE_SHARES.second,
+      // silver
+      colorClasses: 'border-slate-300/40 bg-slate-300/10 text-slate-200',
+      pctClasses: 'text-slate-300/70',
+    },
+    {
+      label: t('home.prizeThird'),
+      amount: split.third,
+      pct: PRIZE_SHARES.third,
+      // bronze
+      colorClasses: 'border-orange-500/40 bg-orange-500/10 text-orange-300',
+      pctClasses: 'text-orange-200/70',
+    },
+  ]
+  return (
+    <div className="relative grid grid-cols-3 gap-2">
+      {slots.map((s) => (
+        <div
+          key={s.label}
+          className={`rounded-lg border px-2 py-2 sm:px-3 sm:py-2.5 text-center ${s.colorClasses}`}
+        >
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-[10px] sm:text-xs font-bold tracking-wide">{s.label}</span>
+            <span className={`text-[9px] sm:text-[10px] tabular-nums ${s.pctClasses}`}>
+              {Math.round(s.pct * 100)}%
+            </span>
+          </div>
+          <div className="text-sm sm:text-base font-extrabold tabular-nums leading-tight mt-0.5">
+            {formatBRL(s.amount)}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

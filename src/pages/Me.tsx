@@ -9,7 +9,7 @@ import { useMyPredictions } from '@/hooks/usePrediction'
 import { useSync } from '@/hooks/useSync'
 import { TierBadge } from '@/components/TierBadge'
 import { useT, useLocale, bcp47 } from '@/i18n'
-import { computePoints, multiplierFor, type Tier } from '@/scoring'
+import { computePoints, isBrazilMatch, multiplierFor, type Tier } from '@/scoring'
 import { getTeamEmblemUrl } from '@/utils/emblems'
 import type { Match, Prediction, Stage, UserScore } from '@/types'
 
@@ -150,6 +150,7 @@ export function Me() {
         {rows.map(({ match, prediction, result }) => {
           const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
           const isBig = bigGame?.matchId === match.id
+          const isBrazil = isBrazilMatch(match.homeTeam, match.awayTeam)
           const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
             matchId: match.id,
             bigGame,
@@ -164,7 +165,9 @@ export function Me() {
                   ? 'border-emerald-500/40 shadow-[0_0_18px_rgba(16,185,129,0.18)] hover:shadow-emerald-500/25'
                   : isBig
                     ? 'border-rose-500/40 hover:shadow-rose-500/20 hover:border-rose-500/60'
-                    : 'border-slate-800/80 hover:shadow-brand-500/10 hover:border-slate-700/80'
+                    : isBrazil
+                      ? 'border-emerald-500/40 hover:shadow-emerald-500/20 hover:border-emerald-500/60'
+                      : 'border-slate-800/80 hover:shadow-brand-500/10 hover:border-slate-700/80'
               }`}
             >
               <div
@@ -173,7 +176,9 @@ export function Me() {
                     ? 'bg-emerald-500/10 group-hover:bg-emerald-500/15'
                     : isBig
                       ? 'bg-rose-500/10 group-hover:bg-rose-500/20'
-                      : 'bg-brand-500/5 group-hover:bg-brand-500/10'
+                      : isBrazil
+                        ? 'bg-gradient-to-br from-emerald-500/15 to-yellow-400/10 group-hover:from-emerald-500/25 group-hover:to-yellow-400/15'
+                        : 'bg-brand-500/5 group-hover:bg-brand-500/10'
                 }`}
               />
 

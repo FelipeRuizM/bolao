@@ -42,6 +42,9 @@ const pt: typeof en = {
     paidBadgeTitle: 'Pagando o bolão',
     prizePoolLabel: 'Prêmio do bolão',
     prizePoolBreakdown: '{count} × {amount}',
+    prizeFirst: '1º',
+    prizeSecond: '2º',
+    prizeThird: '3º',
   },
   matches: {
     title: 'Jogos',

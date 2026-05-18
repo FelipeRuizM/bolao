@@ -40,6 +40,9 @@ const en = {
     paidBadgeTitle: 'Paying into the pool',
     prizePoolLabel: 'Prize pool',
     prizePoolBreakdown: '{count} × {amount}',
+    prizeFirst: '1st',
+    prizeSecond: '2nd',
+    prizeThird: '3rd',
   },
   matches: {
     title: 'Matches',
