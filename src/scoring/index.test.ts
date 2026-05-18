@@ -83,6 +83,42 @@ describe('multiplierFor', () => {
   it('explicit stageMultipliers override beats the default table', () => {
     expect(multiplierFor('r32', 'Spain', 'Morocco', { group: 1, r32: 2, r16: 2.5, qf: 3, sf: 4, '3rd': 4, final: 5 })).toBe(2)
   })
+
+  it('big game multiplier stacks on top of stage and Brazil rule', () => {
+    // group * Brazil * bigGame = 1 * 3 * 2 = 6
+    expect(
+      multiplierFor('group', 'Brazil', 'Serbia', undefined, {
+        matchId: 'm1',
+        bigGame: { matchId: 'm1', multiplier: 2 },
+      }),
+    ).toBe(6)
+  })
+
+  it('big game multiplier only applies to the configured match', () => {
+    expect(
+      multiplierFor('group', 'Spain', 'Morocco', undefined, {
+        matchId: 'm2',
+        bigGame: { matchId: 'm1', multiplier: 2 },
+      }),
+    ).toBe(1)
+  })
+
+  it('big game multiplier ignored when matchId missing', () => {
+    expect(
+      multiplierFor('group', 'Spain', 'Morocco', undefined, {
+        bigGame: { matchId: 'm1', multiplier: 2 },
+      }),
+    ).toBe(1)
+  })
+
+  it('big game multiplier ignored when non-positive', () => {
+    expect(
+      multiplierFor('group', 'Spain', 'Morocco', undefined, {
+        matchId: 'm1',
+        bigGame: { matchId: 'm1', multiplier: 0 },
+      }),
+    ).toBe(1)
+  })
 })
 
 describe('computePoints integration', () => {
@@ -146,5 +182,20 @@ describe('computePoints integration', () => {
     })
     expect(r.base).toBe(5)
     expect(r.total).toBe(5)
+  })
+
+  it('exact score on Brazil final flagged as big game = 10 * 3 * 3 * 2 = 180', () => {
+    const r = computePoints({
+      prediction: { home: 2, away: 1 },
+      actual: { home: 2, away: 1 },
+      stage: 'final',
+      homeTeam: 'Brazil',
+      awayTeam: 'Argentina',
+      matchId: 'final-match',
+      bigGame: { matchId: 'final-match', multiplier: 2 },
+    })
+    expect(r.tier).toBe('exact')
+    expect(r.multiplier).toBe(18)
+    expect(r.total).toBe(180)
   })
 })

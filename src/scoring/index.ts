@@ -72,6 +72,11 @@ export type StageMultipliers = Record<Stage, number>
 export const BRAZIL_MULTIPLIER = 3
 const BRAZIL_NAME = 'Brazil'
 
+export interface BigGameConfig {
+  matchId: string
+  multiplier: number
+}
+
 export type Tier = 'exact' | 'goalDifference' | 'winnerScore' | 'loserScore' | 'outcome' | 'wrong'
 
 function outcome(s: Score): 'home' | 'away' | 'draw' {
@@ -110,10 +115,23 @@ export function multiplierFor(
   homeTeam: string,
   awayTeam: string,
   stageMultipliers: StageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
+  options: { matchId?: string; bigGame?: BigGameConfig | null } = {},
 ): number {
   const stageMult = stageMultipliers[stage]
   const brazilMult = homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME ? BRAZIL_MULTIPLIER : 1
-  return stageMult * brazilMult
+  const bigGameMult =
+    options.bigGame &&
+    options.matchId &&
+    options.bigGame.matchId === options.matchId &&
+    Number.isFinite(options.bigGame.multiplier) &&
+    options.bigGame.multiplier > 0
+      ? options.bigGame.multiplier
+      : 1
+  return stageMult * brazilMult * bigGameMult
+}
+
+export function isBigGame(matchId: string, bigGame: BigGameConfig | null | undefined): boolean {
+  return !!bigGame && bigGame.matchId === matchId && bigGame.multiplier > 0
 }
 
 export interface ComputePointsArgs {
@@ -124,6 +142,8 @@ export interface ComputePointsArgs {
   awayTeam: string
   pointValues?: PointValues
   stageMultipliers?: StageMultipliers
+  matchId?: string
+  bigGame?: BigGameConfig | null
 }
 
 export interface ComputePointsResult {
@@ -141,9 +161,11 @@ export function computePoints({
   awayTeam,
   pointValues = DEFAULT_POINTS,
   stageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
+  matchId,
+  bigGame,
 }: ComputePointsArgs): ComputePointsResult {
   const tier = classifyTier(prediction, actual)
   const base = tier === 'wrong' ? 0 : pointValues[tier]
-  const multiplier = multiplierFor(stage, homeTeam, awayTeam, stageMultipliers)
+  const multiplier = multiplierFor(stage, homeTeam, awayTeam, stageMultipliers, { matchId, bigGame })
   return { tier, base, multiplier, total: base * multiplier }
 }

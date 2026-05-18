@@ -4,6 +4,7 @@ import {
   DEFAULT_POINTS,
   DEFAULT_BONUS_VALUES,
   DEFAULT_STAGE_MULTIPLIERS,
+  type BigGameConfig,
   type BonusAnswers,
   type BonusValues,
   type PointValues,
@@ -20,6 +21,7 @@ export interface ComputeAllInputs {
   bonusValues?: BonusValues
   bonusAnswers?: BonusAnswers
   stageMultipliers?: StageMultipliers
+  bigGame?: BigGameConfig | null
 }
 
 export function computeAllUserScores({
@@ -31,6 +33,7 @@ export function computeAllUserScores({
   bonusValues = DEFAULT_BONUS_VALUES,
   bonusAnswers = {},
   stageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
+  bigGame,
 }: ComputeAllInputs): Record<string, UserScore> {
   const out: Record<string, UserScore> = {}
 
@@ -50,6 +53,8 @@ export function computeAllUserScores({
         awayTeam: match.awayTeam,
         pointValues,
         stageMultipliers,
+        matchId,
+        bigGame,
       })
       perMatch[matchId] = result.total
       total += result.total

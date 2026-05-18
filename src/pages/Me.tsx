@@ -1,14 +1,17 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { onValue, ref } from 'firebase/database'
+import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import { useMatches } from '@/hooks/useMatches'
+import { useBigGame } from '@/hooks/useMetaConfig'
 import { useMyPredictions } from '@/hooks/usePrediction'
 import { useSync } from '@/hooks/useSync'
 import { TierBadge } from '@/components/TierBadge'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { computePoints, multiplierFor, type Tier } from '@/scoring'
 import { getTeamEmblemUrl } from '@/utils/emblems'
-import type { Match, Prediction, Stage } from '@/types'
+import type { Match, Prediction, Stage, UserScore } from '@/types'
 
 const SHORT_STAGE_KEY: Record<Stage, string> = {
   group: 'stages.groupShort',
@@ -40,9 +43,17 @@ export function Me() {
   const { user } = useAuth()
   const t = useT()
   const { locale } = useLocale()
+  const bigGame = useBigGame()
   useSync()
   const { matches } = useMatches()
   const myPredictions = useMyPredictions(user?.uid)
+  const [allScores, setAllScores] = useState<Record<string, UserScore> | null>(null)
+
+  useEffect(() => {
+    return onValue(ref(db, 'scores'), (snap) => {
+      setAllScores((snap.val() ?? {}) as Record<string, UserScore>)
+    })
+  }, [])
 
   const rows = useMemo<Row[]>(() => {
     if (!matches) return []
@@ -58,6 +69,8 @@ export function Me() {
           stage: m.stage,
           homeTeam: m.homeTeam,
           awayTeam: m.awayTeam,
+          matchId: m.id,
+          bigGame,
         })
         result = { points: r.total, tier: r.tier }
       }
@@ -65,19 +78,39 @@ export function Me() {
     }
     out.sort((a, b) => b.match.kickoffAt - a.match.kickoffAt)
     return out
-  }, [matches, myPredictions])
+  }, [matches, myPredictions, bigGame])
 
   const summary = useMemo(() => {
     let total = 0
     let exact = 0
+    let scored = 0
+    let finished = 0
+    // streak = consecutive most-recent FT picks with > 0 points
+    let streak = 0
+    let streakOpen = true
     for (const r of rows) {
-      if (r.result) {
-        total += r.result.points
-        if (r.result.tier === 'exact') exact++
+      if (!r.result) continue
+      finished++
+      total += r.result.points
+      if (r.result.tier === 'exact') exact++
+      if (r.result.points > 0) scored++
+      if (streakOpen) {
+        if (r.result.points > 0) streak++
+        else streakOpen = false
       }
     }
-    return { total, exact, picks: rows.length }
+    const accuracy = finished > 0 ? Math.round((scored / finished) * 100) : null
+    return { total, exact, picks: rows.length, accuracy, streak, finished }
   }, [rows])
+
+  const vsAvg = useMemo(() => {
+    if (!user || !allScores) return null
+    const totals = Object.values(allScores).map((s) => s?.total ?? 0)
+    if (totals.length === 0) return null
+    const avg = totals.reduce((a, b) => a + b, 0) / totals.length
+    const mine = allScores[user.uid]?.total ?? summary.total
+    return Math.round(mine - avg)
+  }, [allScores, user, summary.total])
 
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-5">
@@ -87,6 +120,24 @@ export function Me() {
         <SummaryStat value={summary.total} label={t('me.summaryTotal')} accent />
         <SummaryStat value={summary.exact} label={t('me.summaryExact')} />
         <SummaryStat value={summary.picks} label={t('me.summaryPicks')} />
+        <SummaryStat
+          display={summary.accuracy === null ? '—' : `${summary.accuracy}%`}
+          label={t('me.summaryAccuracy')}
+        />
+        <SummaryStat value={summary.streak} label={t('me.summaryStreak')} />
+        <SummaryStat
+          display={
+            vsAvg === null
+              ? '—'
+              : vsAvg > 0
+                ? `+${vsAvg}`
+                : vsAvg < 0
+                  ? `${vsAvg}`
+                  : '='
+          }
+          label={t('me.summaryVsAvg')}
+          tone={vsAvg === null ? 'neutral' : vsAvg > 0 ? 'positive' : vsAvg < 0 ? 'negative' : 'neutral'}
+        />
       </div>
 
       {matches !== null && rows.length === 0 && (
@@ -98,18 +149,42 @@ export function Me() {
       <div className="space-y-3">
         {rows.map(({ match, prediction, result }) => {
           const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
-          const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
+          const isBig = bigGame?.matchId === match.id
+          const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
+            matchId: match.id,
+            bigGame,
+          })
+          const isExact = result?.tier === 'exact'
           return (
             <Link
               key={match.id}
               to={`/matches/${match.id}`}
-              className="block relative overflow-hidden bg-slate-900 border border-slate-800/80 rounded-2xl px-6 py-5 sm:px-8 sm:py-6 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10 hover:border-slate-700/80 transition-all duration-300 group"
+              className={`block relative overflow-hidden bg-slate-900 border rounded-2xl px-6 py-5 sm:px-8 sm:py-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group ${
+                isExact
+                  ? 'border-emerald-500/40 shadow-[0_0_18px_rgba(16,185,129,0.18)] hover:shadow-emerald-500/25'
+                  : isBig
+                    ? 'border-rose-500/40 hover:shadow-rose-500/20 hover:border-rose-500/60'
+                    : 'border-slate-800/80 hover:shadow-brand-500/10 hover:border-slate-700/80'
+              }`}
             >
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/5 rounded-full blur-3xl group-hover:bg-brand-500/10 transition-colors" />
+              <div
+                className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl transition-colors ${
+                  isExact
+                    ? 'bg-emerald-500/10 group-hover:bg-emerald-500/15'
+                    : isBig
+                      ? 'bg-rose-500/10 group-hover:bg-rose-500/20'
+                      : 'bg-brand-500/5 group-hover:bg-brand-500/10'
+                }`}
+              />
 
               <div className="relative flex items-center justify-between text-sm text-slate-400 mb-5">
-                <span className="flex items-center gap-2 font-medium tracking-wide">
+                <span className="flex items-center gap-2 font-medium tracking-wide flex-wrap">
                   <span>{stageLabel}</span>
+                  {isBig && (
+                    <span className="text-[10px] font-extrabold tracking-wider text-rose-300 border border-rose-500/50 bg-rose-500/15 rounded px-2 py-0.5 shadow-[0_0_8px_rgba(244,63,94,0.35)]">
+                      {t('matchCard.bigGameBadge')}
+                    </span>
+                  )}
                   {mult > 1 && (
                     <span className="text-xs font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded px-2 py-0.5 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
                       {mult}×
@@ -127,7 +202,15 @@ export function Me() {
                       {t('matchCard.statusLive')}
                     </span>
                   )}
-                  {result && <TierBadge tier={result.tier} points={result.points} />}
+                  {result && (
+                    <span
+                      className={
+                        isExact ? 'inline-block rounded-full animate-glow-pulse' : undefined
+                      }
+                    >
+                      <TierBadge tier={result.tier} points={result.points} />
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -183,14 +266,29 @@ export function Me() {
   )
 }
 
-function SummaryStat({ value, label, accent = false }: { value: number; label: string; accent?: boolean }) {
+function SummaryStat({
+  value,
+  display,
+  label,
+  accent = false,
+  tone = 'neutral',
+}: {
+  value?: number
+  display?: string
+  label: string
+  accent?: boolean
+  tone?: 'neutral' | 'positive' | 'negative'
+}) {
+  const colorClass = accent
+    ? 'text-brand-500'
+    : tone === 'positive'
+      ? 'text-emerald-400'
+      : tone === 'negative'
+        ? 'text-rose-400'
+        : 'text-slate-100'
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
-      <div
-        className={`text-2xl font-bold tabular-nums ${accent ? 'text-brand-500' : 'text-slate-100'}`}
-      >
-        {value}
-      </div>
+      <div className={`text-2xl font-bold tabular-nums ${colorClass}`}>{display ?? value ?? 0}</div>
       <div className="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5">{label}</div>
     </div>
   )

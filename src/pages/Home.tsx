@@ -4,9 +4,11 @@ import { HelpCircle } from 'lucide-react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
+import { usePrizePerUser } from '@/hooks/useMetaConfig'
 import { useSync } from '@/hooks/useSync'
 import { useT } from '@/i18n'
 import { RankOverTime } from '@/components/RankOverTime'
+import { formatBRL } from '@/utils/currency'
 import type { UserScore, UserProfile } from '@/types'
 
 interface LeaderboardRow {
@@ -21,6 +23,7 @@ type Filter = 'all' | 'pool'
 export function Home() {
   const { user } = useAuth()
   const t = useT()
+  const prizePerUser = usePrizePerUser()
   useSync()
   const [rows, setRows] = useState<LeaderboardRow[] | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
@@ -65,6 +68,10 @@ export function Home() {
     return rows.filter((r) => r.paid).map((r) => r.uid)
   }, [rows, filter])
 
+  const paidCount = useMemo(() => rows?.filter((r) => r.paid).length ?? 0, [rows])
+  const showPrize = paidCount > 0 && prizePerUser > 0
+  const prizeTotal = paidCount * prizePerUser
+
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-4">
       <div className="flex items-center justify-between gap-3 px-1">
@@ -106,6 +113,28 @@ export function Home() {
           </div>
         )}
       </div>
+
+      {showPrize && (
+        <div
+          key={`${paidCount}-${prizePerUser}`}
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/20 via-brand-500/10 to-transparent border border-brand-500/30 px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between gap-3 animate-fade-up"
+        >
+          <div className="absolute -top-8 -right-6 w-32 h-32 bg-brand-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <div className="text-[10px] sm:text-xs uppercase tracking-wider text-brand-300/80 font-semibold">
+              {t('home.prizePoolLabel')}
+            </div>
+            <div className="text-xl sm:text-2xl font-extrabold text-brand-300 tabular-nums leading-tight mt-0.5">
+              {formatBRL(prizeTotal)}
+            </div>
+          </div>
+          <div className="relative text-right shrink-0">
+            <div className="text-[10px] sm:text-xs text-slate-400 tabular-nums">
+              {t('home.prizePoolBreakdown', { count: paidCount, amount: formatBRL(prizePerUser) })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {rows === null && <p className="text-slate-400">{t('home.loading')}</p>}
       {rows !== null && rows.length === 0 && (

@@ -8,7 +8,8 @@ import { isPredictionOpen, predictionOpensAt, submitPrediction } from '@/api/pre
 import { ScoreStepper } from '@/components/ScoreStepper'
 import { EveryonesPicks } from '@/components/EveryonesPicks'
 import { useT, useLocale, bcp47 } from '@/i18n'
-import { multiplierFor } from '@/scoring'
+import { multiplierFor, type BigGameConfig } from '@/scoring'
+import { useBigGame } from '@/hooks/useMetaConfig'
 import type { Match, Stage } from '@/types'
 
 const STAGE_KEY: Record<Stage, string> = {
@@ -33,11 +34,15 @@ function formatKickoff(ms: number, locale: string): string {
 
 import { getTeamEmblemUrl } from '@/utils/emblems'
 
-function MatchHeader({ match }: { match: Match }) {
+function MatchHeader({ match, bigGame }: { match: Match; bigGame: BigGameConfig | null }) {
   const t = useT()
   const { locale } = useLocale()
   const stageLabel = match.group ? `${t(STAGE_KEY[match.stage])} · ${match.group}` : t(STAGE_KEY[match.stage])
-  const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
+  const isBig = bigGame?.matchId === match.id
+  const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
+    matchId: match.id,
+    bigGame,
+  })
   return (
     <header className="space-y-4">
       <Link to="/matches" className="text-xs text-brand-500 hover:text-brand-400 transition-colors font-medium">
@@ -45,6 +50,11 @@ function MatchHeader({ match }: { match: Match }) {
       </Link>
       <div className="flex items-center gap-2 text-xs font-medium text-slate-400 flex-wrap">
         <span>{stageLabel}</span>
+        {isBig && (
+          <span className="text-[10px] font-extrabold tracking-wider text-rose-300 border border-rose-500/50 bg-rose-500/15 rounded px-1.5 shadow-[0_0_8px_rgba(244,63,94,0.35)]">
+            {t('matchCard.bigGameBadge')}
+          </span>
+        )}
         {mult > 1 && (
           <span className="text-[10px] font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded px-1.5 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
             {t('matchDetail.multiplierBadge', { n: mult })}
@@ -86,12 +96,15 @@ export function MatchDetail() {
   const myPrediction = useMyPrediction(id, user?.uid)
   const t = useT()
   const { locale } = useLocale()
+  const bigGame = useBigGame()
+  const isBig = !!match && bigGame?.matchId === match.id
   useSync()
   const [home, setHome] = useState(0)
   const [away, setAway] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState(false)
+  const [saveCount, setSaveCount] = useState(0)
 
   useEffect(() => {
     if (myPrediction) {
@@ -126,6 +139,7 @@ export function MatchDetail() {
     setError(null)
     try {
       await submitPrediction(id, user.uid, home, away, match.kickoffAt)
+      setSaveCount((c) => c + 1)
       setSavedFlash(true)
       setTimeout(() => setSavedFlash(false), 1800)
     } catch (err) {
@@ -138,7 +152,8 @@ export function MatchDetail() {
   if (!isLocked && !predictionsOpen) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
-        <MatchHeader match={match} />
+        <MatchHeader match={match} bigGame={bigGame} />
+        {isBig && <BigGameBanner multiplier={bigGame!.multiplier} />}
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-2">
           <h2 className="font-semibold text-slate-200">{t('matchDetail.predictionsNotOpenHeading')}</h2>
           <p className="text-sm text-slate-400">
@@ -151,7 +166,10 @@ export function MatchDetail() {
 
   if (!isLocked) {
     const stageLabel = match.group ? `${t(STAGE_KEY[match.stage])} · ${match.group}` : t(STAGE_KEY[match.stage])
-    const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
+    const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
+      matchId: match.id,
+      bigGame,
+    })
     return (
       <form
         onSubmit={onSave}
@@ -163,6 +181,11 @@ export function MatchDetail() {
             ← {t('matchDetail.backToMatches')}
           </Link>
           <span className="text-slate-400 font-medium">{stageLabel}</span>
+          {isBig && (
+            <span className="text-[10px] font-extrabold tracking-wider text-rose-300 border border-rose-500/50 bg-rose-500/15 rounded px-1.5 shadow-[0_0_8px_rgba(244,63,94,0.35)]">
+              {t('matchCard.bigGameBadge')}
+            </span>
+          )}
           {mult > 1 && (
             <span className="text-[10px] font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded px-1.5 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
               {t('matchDetail.multiplierBadge', { n: mult })}
@@ -223,7 +246,15 @@ export function MatchDetail() {
                   ? t('matchDetail.updatePick')
                   : t('matchDetail.savePick')}
               </button>
-              {savedFlash && <p className="text-sm text-emerald-400 text-center">{t('matchDetail.saved')}</p>}
+              {savedFlash && (
+                <p
+                  key={saveCount}
+                  className="text-sm font-semibold text-emerald-400 text-center animate-save-pop"
+                  aria-live="polite"
+                >
+                  {t('matchDetail.saved')}
+                </p>
+              )}
               {error && <p className="text-sm text-red-400 break-words">{error}</p>}
               {hasPrediction && myPrediction?.submittedAt && (
                 <p className="text-xs text-slate-500 text-center">
@@ -241,7 +272,8 @@ export function MatchDetail() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
-      <MatchHeader match={match} />
+      <MatchHeader match={match} bigGame={bigGame} />
+      {isBig && <BigGameBanner multiplier={bigGame!.multiplier} />}
 
       <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h2 className="font-semibold">{t('matchDetail.locked')}</h2>
@@ -271,5 +303,25 @@ export function MatchDetail() {
 
       <EveryonesPicks match={match} />
     </div>
+  )
+}
+
+function BigGameBanner({ multiplier }: { multiplier: number }) {
+  const t = useT()
+  return (
+    <section className="relative overflow-hidden rounded-2xl border border-rose-500/40 bg-gradient-to-br from-rose-500/15 via-rose-500/10 to-transparent px-4 py-3 sm:px-5 sm:py-4 animate-pop-in">
+      <div className="absolute -top-8 -right-8 w-32 h-32 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative flex items-center gap-3">
+        <span className="text-[10px] font-extrabold tracking-wider text-rose-300 border border-rose-500/50 bg-rose-500/15 rounded px-2 py-0.5">
+          {t('matchCard.bigGameBadge')}
+        </span>
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-rose-200">{t('matchDetail.bigGameBannerTitle')}</div>
+          <div className="text-xs text-rose-300/80">
+            {t('matchDetail.bigGameBannerDesc', { n: multiplier })}
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }

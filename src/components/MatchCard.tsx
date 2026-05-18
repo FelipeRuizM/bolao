@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { isPredictionOpen, predictionOpensAt } from '@/api/predictions'
 import { multiplierFor } from '@/scoring'
+import { useBigGame } from '@/hooks/useMetaConfig'
 import type { Match, Prediction, Stage } from '@/types'
 import { getTeamEmblemUrl } from '@/utils/emblems'
 
@@ -47,8 +48,13 @@ function StatusPill({ status }: { status: Match['status'] }) {
 export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?: Prediction }) {
   const t = useT()
   const { locale } = useLocale()
+  const bigGame = useBigGame()
+  const isBig = bigGame?.matchId === match.id
   const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
-  const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam)
+  const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
+    matchId: match.id,
+    bigGame,
+  })
   const isLocked = Date.now() >= match.kickoffAt
   const predictionsOpen = isPredictionOpen(match.kickoffAt)
   const showPickBadge = !!myPrediction
@@ -58,14 +64,29 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
   return (
     <Link
       to={`/matches/${match.id}`}
-      className="block relative overflow-hidden bg-slate-900 border border-slate-800/80 rounded-2xl px-6 py-6 sm:px-8 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10 hover:border-slate-700/80 transition-all duration-300 group"
+      className={`block relative overflow-hidden bg-slate-900 border rounded-2xl px-6 py-6 sm:px-8 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group ${
+        isBig
+          ? 'border-rose-500/40 hover:shadow-rose-500/20 hover:border-rose-500/60'
+          : 'border-slate-800/80 hover:shadow-brand-500/10 hover:border-slate-700/80'
+      }`}
     >
       {/* Decorative gradient blob */}
-      <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-500/5 rounded-full blur-3xl group-hover:bg-brand-500/10 transition-colors" />
+      <div
+        className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl transition-colors ${
+          isBig
+            ? 'bg-rose-500/10 group-hover:bg-rose-500/20'
+            : 'bg-brand-500/5 group-hover:bg-brand-500/10'
+        }`}
+      />
 
       <div className="relative flex items-center justify-between text-sm text-slate-400 mb-6">
-        <span className="flex items-center gap-2 font-medium tracking-wide">
+        <span className="flex items-center gap-2 font-medium tracking-wide flex-wrap">
           <span>{stageLabel}</span>
+          {isBig && (
+            <span className="text-[10px] font-extrabold tracking-wider text-rose-300 border border-rose-500/50 bg-rose-500/15 rounded px-2 py-0.5 shadow-[0_0_8px_rgba(244,63,94,0.35)] animate-pop-in">
+              {t('matchCard.bigGameBadge')}
+            </span>
+          )}
           {mult > 1 && (
             <span className="text-xs font-bold text-brand-400 border border-brand-500/30 bg-brand-500/10 rounded px-2 py-0.5 shadow-[0_0_8px_rgba(234,179,8,0.2)]">
               {mult}×

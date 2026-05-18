@@ -2,6 +2,7 @@ import { ref, set, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { recomputeAllUserScores } from '@/scoring/recompute'
 import type {
+  BigGameConfig,
   BonusAnswers,
   BonusValues,
   PointValues,
@@ -67,5 +68,19 @@ export async function setLockBonusAt(timestamp: number): Promise<void> {
 }
 
 export async function recomputeNow(): Promise<void> {
+  await recomputeAllUserScores()
+}
+
+export async function setPrizePerUser(amount: number): Promise<void> {
+  const value = Number.isFinite(amount) && amount >= 0 ? amount : 0
+  await set(ref(db, 'meta/config/prizePerUser'), value)
+}
+
+export async function setBigGame(config: BigGameConfig | null): Promise<void> {
+  const value =
+    config && config.matchId && Number.isFinite(config.multiplier) && config.multiplier > 0
+      ? { matchId: config.matchId, multiplier: config.multiplier }
+      : null
+  await set(ref(db, 'meta/config/bigGame'), value)
   await recomputeAllUserScores()
 }
