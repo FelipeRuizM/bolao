@@ -48,36 +48,36 @@ describe('multiplierFor', () => {
     expect(multiplierFor('group', 'Brazil', 'Serbia')).toBe(3)
   })
 
-  it('Brazil quarter-final = 6x (2 stage * 3 brazil)', () => {
-    expect(multiplierFor('qf', 'Brazil', 'France')).toBe(6)
+  it('Brazil quarter-final = 12x (4 stage * 3 brazil)', () => {
+    expect(multiplierFor('qf', 'Brazil', 'France')).toBe(12)
   })
 
-  it('Brazil final = 9x (3 stage * 3 brazil — stacked)', () => {
-    expect(multiplierFor('final', 'Brazil', 'Argentina')).toBe(9)
+  it('Brazil final = 18x (6 stage * 3 brazil — stacked)', () => {
+    expect(multiplierFor('final', 'Brazil', 'Argentina')).toBe(18)
   })
 
-  it('Brazil semi-final = 7.5x (2.5 stage * 3 brazil)', () => {
-    expect(multiplierFor('sf', 'Brazil', 'Germany')).toBe(7.5)
+  it('Brazil semi-final = 15x (5 stage * 3 brazil)', () => {
+    expect(multiplierFor('sf', 'Brazil', 'Germany')).toBe(15)
   })
 
-  it('Brazil round of 16 = 4.5x (1.5 stage * 3 brazil)', () => {
-    expect(multiplierFor('r16', 'Brazil', 'Croatia')).toBe(4.5)
+  it('Brazil round of 16 = 9x (3 stage * 3 brazil)', () => {
+    expect(multiplierFor('r16', 'Brazil', 'Croatia')).toBe(9)
   })
 
-  it('Argentina vs Spain semi-final = 2.5x (no Brazil)', () => {
-    expect(multiplierFor('sf', 'Argentina', 'Spain')).toBe(2.5)
+  it('Argentina vs Spain semi-final = 5x (no Brazil)', () => {
+    expect(multiplierFor('sf', 'Argentina', 'Spain')).toBe(5)
   })
 
-  it('non-Brazil final = 3x', () => {
-    expect(multiplierFor('final', 'Argentina', 'France')).toBe(3)
+  it('non-Brazil final = 6x', () => {
+    expect(multiplierFor('final', 'Argentina', 'France')).toBe(6)
   })
 
-  it('round of 32 (no Brazil) = 1.25x — admin can override via /meta/config', () => {
-    expect(multiplierFor('r32', 'Spain', 'Morocco')).toBe(1.25)
+  it('round of 32 (no Brazil) = 2x — admin can override via /meta/config', () => {
+    expect(multiplierFor('r32', 'Spain', 'Morocco')).toBe(2)
   })
 
-  it('round of 32 with Brazil = 3.75x (1.25 stage * 3 brazil)', () => {
-    expect(multiplierFor('r32', 'Brazil', 'Senegal')).toBe(3.75)
+  it('round of 32 with Brazil = 6x (2 stage * 3 brazil)', () => {
+    expect(multiplierFor('r32', 'Brazil', 'Senegal')).toBe(6)
   })
 
   it('explicit stageMultipliers override beats the default table', () => {
@@ -148,7 +148,7 @@ describe('computePoints integration', () => {
     expect(r.total).toBe(5)
   })
 
-  it('correct outcome on a non-Brazil final = 1 * 3 = 3', () => {
+  it('correct outcome on a non-Brazil final = 1 * 6 = 6', () => {
     const r = computePoints({
       prediction: { home: 4, away: 2 },
       actual: { home: 1, away: 0 },
@@ -157,7 +157,7 @@ describe('computePoints integration', () => {
       awayTeam: 'France',
     })
     expect(r.tier).toBe('outcome')
-    expect(r.total).toBe(3)
+    expect(r.total).toBe(6)
   })
 
   it('wrong prediction returns 0 regardless of stage/Brazil', () => {
@@ -184,7 +184,7 @@ describe('computePoints integration', () => {
     expect(r.total).toBe(5)
   })
 
-  it('exact score on Brazil final flagged as big game = 10 * 3 * 3 * 2 = 180', () => {
+  it('exact score on Brazil final flagged as big game = 10 * 6 * 3 * 2 = 360', () => {
     const r = computePoints({
       prediction: { home: 2, away: 1 },
       actual: { home: 2, away: 1 },
@@ -195,7 +195,7 @@ describe('computePoints integration', () => {
       bigGame: { matchId: 'final-match', multiplier: 2 },
     })
     expect(r.tier).toBe('exact')
-    expect(r.multiplier).toBe(18)
-    expect(r.total).toBe(180)
+    expect(r.multiplier).toBe(36)
+    expect(r.total).toBe(360)
   })
 })

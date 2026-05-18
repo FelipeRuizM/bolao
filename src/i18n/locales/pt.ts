@@ -110,7 +110,7 @@ const pt: typeof en = {
     stagesDesc: 'Os pontos aumentam conforme a fase avança no torneio.',
     brazilHeading: 'Regra do Brasil',
     brazilRow: 'Qualquer jogo com o Brasil',
-    brazilDesc: 'Empilha em cima do multiplicador da fase. Ex.: Brasil na final = fase 3× × Brasil 3× = 9× em cada nível de pontuação base.',
+    brazilDesc: 'Empilha em cima do multiplicador da fase. Ex.: Brasil na final = fase 6× × Brasil 3× = 18× em cada nível de pontuação base.',
     bonusHeading: 'Palpites bônus',
     bonusDesc: 'Dois palpites de torneio que valem pontos extras se acertados. Travam no primeiro jogo.',
     exampleHeading: 'Exemplo prático',

@@ -26,7 +26,7 @@ export function Home() {
   const prizePerUser = usePrizePerUser()
   useSync()
   const [rows, setRows] = useState<LeaderboardRow[] | null>(null)
-  const [filter, setFilter] = useState<Filter>('all')
+  const [filter, setFilter] = useState<Filter>('pool')
 
   useEffect(() => {
     let users: Record<string, UserProfile> | null = null
@@ -58,15 +58,18 @@ export function Home() {
     }
   }, [])
 
+  const hasPaid = useMemo(() => rows?.some((r) => r.paid) ?? false, [rows])
+  const effectiveFilter: Filter = filter === 'pool' && !hasPaid ? 'all' : filter
+
   const visibleRows = useMemo(() => {
     if (!rows) return null
-    return filter === 'pool' ? rows.filter((r) => r.paid) : rows
-  }, [rows, filter])
+    return effectiveFilter === 'pool' ? rows.filter((r) => r.paid) : rows
+  }, [rows, effectiveFilter])
 
   const filterUids = useMemo(() => {
-    if (!rows || filter !== 'pool') return undefined
+    if (!rows || effectiveFilter !== 'pool') return undefined
     return rows.filter((r) => r.paid).map((r) => r.uid)
-  }, [rows, filter])
+  }, [rows, effectiveFilter])
 
   const paidCount = useMemo(() => rows?.filter((r) => r.paid).length ?? 0, [rows])
   const showPrize = paidCount > 0 && prizePerUser > 0
@@ -86,29 +89,29 @@ export function Home() {
             <HelpCircle size={20} />
           </Link>
         </div>
-        {rows !== null && rows.some((r) => r.paid) && (
+        {hasPaid && (
           <div className="flex rounded-lg bg-slate-800/60 border border-slate-700 p-0.5 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setFilter('all')}
-              className={`px-3 py-1.5 rounded-md transition-colors ${
-                filter === 'all'
-                  ? 'bg-slate-700 text-slate-100'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {t('home.filterAll')}
-            </button>
             <button
               type="button"
               onClick={() => setFilter('pool')}
               className={`px-3 py-1.5 rounded-md transition-colors ${
-                filter === 'pool'
+                effectiveFilter === 'pool'
                   ? 'bg-slate-700 text-slate-100'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               {t('home.filterPool')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter('all')}
+              className={`px-3 py-1.5 rounded-md transition-colors ${
+                effectiveFilter === 'all'
+                  ? 'bg-slate-700 text-slate-100'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t('home.filterAll')}
             </button>
           </div>
         )}

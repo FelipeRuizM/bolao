@@ -108,7 +108,7 @@ const en = {
     stagesDesc: 'Points scale up the deeper into the tournament a match is.',
     brazilHeading: 'Brazil rule',
     brazilRow: 'Any match featuring Brazil',
-    brazilDesc: 'Stacks on top of the stage multiplier. E.g. Brazil in the final = stage 3× × Brazil 3× = 9× on every base tier.',
+    brazilDesc: 'Stacks on top of the stage multiplier. E.g. Brazil in the final = stage 6× × Brazil 3× = 18× on every base tier.',
     bonusHeading: 'Bonus picks',
     bonusDesc: 'Two season-long picks worth bonus points if correct. Locks at the opening match.',
     exampleHeading: 'Worked example',

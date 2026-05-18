@@ -59,12 +59,12 @@ export function computeBonusPoints(
 
 export const DEFAULT_STAGE_MULTIPLIERS: Record<Stage, number> = {
   group: 1,
-  r32: 1.25,
-  r16: 1.5,
-  qf: 2,
-  sf: 2.5,
-  '3rd': 2.5,
-  final: 3,
+  r32: 2,
+  r16: 3,
+  qf: 4,
+  sf: 5,
+  '3rd': 3,
+  final: 6,
 }
 
 export type StageMultipliers = Record<Stage, number>
