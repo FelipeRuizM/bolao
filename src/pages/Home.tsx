@@ -153,25 +153,27 @@ export function Home() {
         <>
           <ol className="divide-y divide-slate-800 rounded-xl bg-slate-900 border border-slate-800">
             {visibleRows.map((row, i) => (
-              <li
-                key={row.uid}
-                className={`flex items-center gap-3 px-4 py-3 ${
-                  row.uid === user?.uid ? 'bg-slate-800/40' : ''
-                }`}
-              >
-                <span className="w-8 text-center text-slate-500 font-mono">{i + 1}</span>
-                <span className="flex-1 truncate flex items-center gap-2 min-w-0">
-                  <span className="truncate">{row.displayName}</span>
-                  {row.paid && (
-                    <span
-                      title={t('home.paidBadgeTitle')}
-                      className="shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                    >
-                      {t('home.paidBadge')}
-                    </span>
-                  )}
-                </span>
-                <span className="font-bold text-brand-500 tabular-nums">{row.total}</span>
+              <li key={row.uid}>
+                <Link
+                  to={`/players/${row.uid}`}
+                  className={`flex items-center gap-3 px-4 py-3 hover:bg-slate-800/60 transition-colors ${
+                    row.uid === user?.uid ? 'bg-slate-800/40' : ''
+                  }`}
+                >
+                  <span className="w-8 text-center text-slate-500 font-mono">{i + 1}</span>
+                  <span className="flex-1 truncate flex items-center gap-2 min-w-0">
+                    <span className="truncate">{row.displayName}</span>
+                    {row.paid && (
+                      <span
+                        title={t('home.paidBadgeTitle')}
+                        className="shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                      >
+                        {t('home.paidBadge')}
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-bold text-brand-500 tabular-nums">{row.total}</span>
+                </Link>
               </li>
             ))}
           </ol>

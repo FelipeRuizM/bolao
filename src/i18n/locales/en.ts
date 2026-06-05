@@ -141,6 +141,12 @@ const en = {
     liveMatch: 'In progress',
     pointsEarned: '{n} pts',
   },
+  player: {
+    back: 'Back to leaderboard',
+    titleSelf: 'You',
+    bonusPoints: 'Bonus points',
+    noPicks: 'No picks for matches that have started yet.',
+  },
   stages: {
     group: 'Group stage',
     r32: 'Round of 32',

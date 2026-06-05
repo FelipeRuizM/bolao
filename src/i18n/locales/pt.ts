@@ -143,6 +143,12 @@ const pt: typeof en = {
     liveMatch: 'Em andamento',
     pointsEarned: '{n} pts',
   },
+  player: {
+    back: 'Voltar ao ranking',
+    titleSelf: 'Você',
+    bonusPoints: 'Pontos de bônus',
+    noPicks: 'Nenhum palpite em jogos que já começaram.',
+  },
   stages: {
     group: 'Fase de grupos',
     r32: 'Trinta-e-dois-avos',

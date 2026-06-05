@@ -8,6 +8,7 @@ import { Home } from '@/pages/Home'
 import { Matches } from '@/pages/Matches'
 import { MatchDetail } from '@/pages/MatchDetail'
 import { Me } from '@/pages/Me'
+import { Player } from '@/pages/Player'
 import { Bonus } from '@/pages/Bonus'
 import { Points } from '@/pages/Points'
 import { Profile } from '@/pages/Profile'
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
             <Route path="/matches/:id" element={<ProtectedRoute><MatchDetail /></ProtectedRoute>} />
             <Route path="/me" element={<ProtectedRoute><Me /></ProtectedRoute>} />
+            <Route path="/players/:uid" element={<ProtectedRoute><Player /></ProtectedRoute>} />
             <Route path="/bonus" element={<ProtectedRoute><Bonus /></ProtectedRoute>} />
             <Route path="/points" element={<ProtectedRoute><Points /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
