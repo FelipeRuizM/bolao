@@ -58,6 +58,8 @@ const pt: typeof en = {
     noOpen: 'Nenhum jogo aberto para palpite agora. Tente "Futuros" ou "Todos".',
     noFuture: 'Nenhum jogo futuro além da janela de palpites.',
     noPrevious: 'Nenhum jogo encerrado ainda.',
+    unpickedOne: 'Você ainda tem 1 jogo aberto sem palpite — não perca!',
+    unpickedMany: 'Você ainda tem {count} jogos abertos sem palpite — não perca!',
   },
   matchCard: {
     vs: 'x',

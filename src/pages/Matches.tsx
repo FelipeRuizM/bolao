@@ -55,6 +55,14 @@ export function Matches() {
     }
   }, [matches, filter])
 
+  // How many currently-pickable open games the user still hasn't predicted.
+  // Live games are excluded (picks are locked once a match kicks off).
+  const openUnpickedCount = useMemo(() => {
+    if (!matches) return 0
+    const now = Date.now()
+    return matches.filter((m) => isPredictionOpen(m.kickoffAt, now) && !myPredictions[m.id]).length
+  }, [matches, myPredictions])
+
   const grouped = useMemo(() => {
     if (!visibleMatches) return null
     const groups: Record<string, Match[]> = {}
@@ -88,6 +96,17 @@ export function Matches() {
           </div>
         )}
       </div>
+
+      {filter === 'open' && openUnpickedCount > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-4 py-3 text-sm text-brand-200">
+          <span className="text-lg leading-none" aria-hidden="true">⏰</span>
+          <span className="font-medium">
+            {t(openUnpickedCount === 1 ? 'matches.unpickedOne' : 'matches.unpickedMany', {
+              count: openUnpickedCount,
+            })}
+          </span>
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded p-3">

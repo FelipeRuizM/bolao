@@ -56,6 +56,8 @@ const en = {
     noOpen: 'No matches open for picks right now. Try "Future" or "All".',
     noFuture: 'No upcoming matches beyond the pick window.',
     noPrevious: 'No finished matches yet.',
+    unpickedOne: "You still have 1 open match without a pick — don't miss it!",
+    unpickedMany: 'You still have {count} open matches without a pick — don\'t miss them!',
   },
   matchCard: {
     vs: 'vs',
