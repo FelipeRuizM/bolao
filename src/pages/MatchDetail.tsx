@@ -7,6 +7,7 @@ import { useSync } from '@/hooks/useSync'
 import { isPredictionOpen, predictionOpensAt, submitPrediction } from '@/api/predictions'
 import { ScoreStepper } from '@/components/ScoreStepper'
 import { EveryonesPicks } from '@/components/EveryonesPicks'
+import { PickStatusList } from '@/components/PickStatusList'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { bigGameMultiplier, isBigGame, multiplierFor, type BigGames } from '@/scoring'
 import { useBigGames } from '@/hooks/useMetaConfig'
@@ -161,6 +162,7 @@ export function MatchDetail() {
             {t('matchDetail.predictionsOpenAt', { when: formatKickoff(opensAt, bcp47(locale)) })}
           </p>
         </section>
+        <PickStatusList matchId={match.id} />
       </div>
     )
   }
@@ -269,6 +271,9 @@ export function MatchDetail() {
               )}
             </div>
           </div>
+        </div>
+        <div className="px-4 pb-8 sm:px-6">
+          <PickStatusList matchId={match.id} />
         </div>
       </form>
     )

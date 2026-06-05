@@ -39,6 +39,25 @@ export function useMatchPredictions(matchId: string | undefined, status: MatchSt
  * denied (e.g. the `predictionStatus` rule isn't deployed yet), so callers can
  * simply hide the indicator rather than show a misleading "nobody picked".
  */
+/**
+ * Value-free "who has picked" map for a single match: { uid: true }. Readable
+ * before kickoff. Returns null while loading or if denied, so callers can hide.
+ */
+export function useMatchPickStatus(matchId: string | undefined): Record<string, boolean> | null {
+  const [data, setData] = useState<Record<string, boolean> | null>(null)
+
+  useEffect(() => {
+    if (!matchId) return
+    return onValue(
+      ref(db, `predictionStatus/${matchId}`),
+      (snap) => setData((snap.val() as Record<string, boolean> | null) ?? {}),
+      () => setData(null),
+    )
+  }, [matchId])
+
+  return data
+}
+
 export function useAllPickStatus(): Record<string, Record<string, boolean>> | null {
   const [data, setData] = useState<Record<string, Record<string, boolean>> | null>(null)
 

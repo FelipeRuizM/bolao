@@ -94,6 +94,7 @@ const PLAYERS: DemoPlayer[] = [
       'demo-pts-004': [2, 1], // wrong   → 0
       'demo-pts-005': [1, 0], // exact   → 150
       'demo-pts-006': [1, 1],
+      'demo-pts-007': [3, 2], // upcoming — shows in the "who's picked" roster
     },
     bonus: { tournamentWinner: 'Brazil', topScorer: 'Vinicius Junior' }, // +35
   },
@@ -108,6 +109,7 @@ const PLAYERS: DemoPlayer[] = [
       'demo-pts-004': [1, 1], // goalDiff → 40
       'demo-pts-005': [2, 1], // goalDiff → 75
       'demo-pts-006': [0, 0],
+      'demo-pts-007': [1, 1],
     },
   },
   {
@@ -121,6 +123,7 @@ const PLAYERS: DemoPlayer[] = [
       'demo-pts-004': [3, 3], // goalDiff   → 40
       'demo-pts-005': [0, 1], // wrong      → 0
       'demo-pts-006': [2, 1],
+      'demo-pts-007': [2, 0],
     },
   },
   {
@@ -134,6 +137,7 @@ const PLAYERS: DemoPlayer[] = [
       'demo-pts-004': [2, 2], // exact      → 80
       'demo-pts-005': [2, 0], // loserScore → 30
       'demo-pts-006': [1, 0],
+      'demo-pts-007': [0, 1],
     },
     bonus: { tournamentWinner: 'Brazil', topScorer: 'Kylian Mbappe' }, // +20 (winner only)
   },
@@ -148,6 +152,7 @@ const PLAYERS: DemoPlayer[] = [
       'demo-pts-004': [0, 0], // goalDiff → 40
       'demo-pts-005': [2, 1], // goalDiff → 75
       'demo-pts-006': [2, 2],
+      'demo-pts-007': [2, 2],
     },
     bonus: { tournamentWinner: 'Argentina', topScorer: 'Vinicius Junior' }, // +15 (scorer only)
   },
@@ -162,6 +167,7 @@ const PLAYERS: DemoPlayer[] = [
       'demo-pts-004': [2, 2], // exact → 80 (even a tail-ender can nail the big game)
       'demo-pts-005': [0, 0], // wrong → 0
       'demo-pts-006': [3, 1],
+      'demo-pts-007': [1, 2],
     },
   },
 ]
