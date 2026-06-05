@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { setBigGame } from '@/api/admin'
-import { useBigGame } from '@/hooks/useMetaConfig'
+import { removeBigGame, setBigGame } from '@/api/admin'
+import { useBigGames } from '@/hooks/useMetaConfig'
 import { useMatches } from '@/hooks/useMatches'
 import { bcp47, useLocale, useT, type TFunction } from '@/i18n'
 import { AdminButton, AdminCard, StatusLine } from './AdminCard'
@@ -18,7 +18,7 @@ export function BigGameSection() {
   const t = useT()
   const { locale } = useLocale()
   const { matches } = useMatches()
-  const current = useBigGame()
+  const bigGames = useBigGames()
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [multiplier, setMultiplier] = useState<number>(2)
@@ -26,10 +26,13 @@ export function BigGameSection() {
   const [ok, setOk] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  const currentMatch = useMemo(() => {
-    if (!current || !matches) return null
-    return matches.find((m) => m.id === current.matchId) ?? null
-  }, [current, matches])
+  const current = useMemo(() => {
+    if (!matches) return []
+    return Object.entries(bigGames)
+      .map(([matchId, mult]) => ({ match: matches.find((m) => m.id === matchId), matchId, mult }))
+      .filter((x): x is { match: Match; matchId: string; mult: number } => !!x.match)
+      .sort((a, b) => a.match.kickoffAt - b.match.kickoffAt)
+  }, [bigGames, matches])
 
   const results = useMemo(() => {
     if (!matches) return []
@@ -53,7 +56,7 @@ export function BigGameSection() {
     setOk(null)
     setErr(null)
     try {
-      await setBigGame({ matchId: selected.id, multiplier })
+      await setBigGame(selected.id, multiplier)
       setOk(t('admin.bigGameSaved'))
       setSelectedId(null)
       setSearch('')
@@ -64,12 +67,12 @@ export function BigGameSection() {
     }
   }
 
-  async function clear() {
+  async function clear(matchId: string) {
     setBusy(true)
     setOk(null)
     setErr(null)
     try {
-      await setBigGame(null)
+      await removeBigGame(matchId)
       setOk(t('admin.bigGameCleared'))
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
@@ -80,25 +83,32 @@ export function BigGameSection() {
 
   return (
     <AdminCard title={t('admin.bigGameHeading')} description={t('admin.bigGameDesc')}>
-      {currentMatch && (
-        <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2 text-sm flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-rose-300 font-semibold truncate">
-              {formatLabel(currentMatch, bcp47(locale), t)}
-            </div>
-            <div className="text-xs text-rose-400/80">
-              {t('admin.bigGameCurrent', { n: current!.multiplier })}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={clear}
-            disabled={busy}
-            className="shrink-0 text-xs font-semibold text-rose-300 hover:text-rose-200 border border-rose-500/40 rounded px-2 py-1 disabled:opacity-50"
-          >
-            {t('admin.bigGameClear')}
-          </button>
-        </div>
+      {current.length > 0 && (
+        <ul className="space-y-2">
+          {current.map(({ match, matchId, mult }) => (
+            <li
+              key={matchId}
+              className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2 text-sm flex items-center justify-between gap-2"
+            >
+              <div className="min-w-0">
+                <div className="text-rose-300 font-semibold truncate">
+                  {formatLabel(match, bcp47(locale), t)}
+                </div>
+                <div className="text-xs text-rose-400/80">
+                  {t('admin.bigGameCurrent', { n: mult })}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => clear(matchId)}
+                disabled={busy}
+                className="shrink-0 text-xs font-semibold text-rose-300 hover:text-rose-200 border border-rose-500/40 rounded px-2 py-1 disabled:opacity-50"
+              >
+                {t('admin.bigGameClear')}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
       <input

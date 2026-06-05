@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { isPredictionOpen, predictionOpensAt } from '@/api/predictions'
-import { isBrazilMatch, multiplierFor } from '@/scoring'
-import { useBigGame } from '@/hooks/useMetaConfig'
+import { isBigGame, isBrazilMatch, multiplierFor } from '@/scoring'
+import { useBigGames } from '@/hooks/useMetaConfig'
 import type { Match, Prediction, Stage } from '@/types'
 import { getTeamEmblemUrl } from '@/utils/emblems'
 
@@ -48,13 +48,13 @@ function StatusPill({ status }: { status: Match['status'] }) {
 export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?: Prediction }) {
   const t = useT()
   const { locale } = useLocale()
-  const bigGame = useBigGame()
-  const isBig = bigGame?.matchId === match.id
+  const bigGames = useBigGames()
+  const isBig = isBigGame(match.id, bigGames)
   const isBrazil = isBrazilMatch(match.homeTeam, match.awayTeam)
   const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
   const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
     matchId: match.id,
-    bigGame,
+    bigGames,
   })
   const isLocked = Date.now() >= match.kickoffAt
   const predictionsOpen = isPredictionOpen(match.kickoffAt)

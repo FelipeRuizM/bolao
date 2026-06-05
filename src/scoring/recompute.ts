@@ -1,6 +1,7 @@
 import { get, ref, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { computeAllUserScores } from './computeAll'
+import { normalizeBigGames } from './index'
 import type {
   BigGameConfig,
   BonusAnswers,
@@ -34,6 +35,7 @@ export async function recomputeAllUserScores(): Promise<void> {
     bonusValues?: BonusValues
     bonusAnswers?: BonusAnswers
     stageMultipliers?: StageMultipliers
+    bigGames?: Record<string, number> | null
     bigGame?: BigGameConfig | null
   }
   const users = (usersSnap.val() ?? {}) as Record<string, unknown>
@@ -69,7 +71,7 @@ export async function recomputeAllUserScores(): Promise<void> {
     bonusValues: config.bonusValues,
     bonusAnswers: config.bonusAnswers,
     stageMultipliers: config.stageMultipliers,
-    bigGame: config.bigGame ?? null,
+    bigGames: normalizeBigGames(config.bigGames, config.bigGame),
   })
 
   const updates: Record<string, UserScore> = {}

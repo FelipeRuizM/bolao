@@ -76,9 +76,48 @@ export function isBrazilMatch(homeTeam: string, awayTeam: string): boolean {
   return homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME
 }
 
+/** Legacy single-match shape, kept for back-compat reads/migration. */
 export interface BigGameConfig {
   matchId: string
   multiplier: number
+}
+
+/** Map of matchId -> multiplier (>0). Multiple matches can be "big games". */
+export type BigGames = Record<string, number>
+
+/**
+ * Normalize stored big-game config into a clean map of positive multipliers,
+ * folding in any legacy single `bigGame` value so old data keeps applying.
+ */
+export function normalizeBigGames(
+  bigGames: Record<string, unknown> | null | undefined,
+  legacy?: BigGameConfig | null,
+): BigGames {
+  const out: BigGames = {}
+  if (
+    legacy &&
+    typeof legacy.matchId === 'string' &&
+    Number.isFinite(legacy.multiplier) &&
+    legacy.multiplier > 0
+  ) {
+    out[legacy.matchId] = legacy.multiplier
+  }
+  if (bigGames) {
+    for (const [id, v] of Object.entries(bigGames)) {
+      const n = typeof v === 'number' ? v : Number(v)
+      if (Number.isFinite(n) && n > 0) out[id] = n
+    }
+  }
+  return out
+}
+
+export function bigGameMultiplier(
+  matchId: string | undefined,
+  bigGames: BigGames | null | undefined,
+): number {
+  if (!matchId || !bigGames) return 1
+  const m = bigGames[matchId]
+  return typeof m === 'number' && Number.isFinite(m) && m > 0 ? m : 1
 }
 
 export type Tier = 'exact' | 'goalDifference' | 'winnerScore' | 'loserScore' | 'outcome' | 'wrong'
@@ -119,23 +158,16 @@ export function multiplierFor(
   homeTeam: string,
   awayTeam: string,
   stageMultipliers: StageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
-  options: { matchId?: string; bigGame?: BigGameConfig | null } = {},
+  options: { matchId?: string; bigGames?: BigGames | null } = {},
 ): number {
   const stageMult = stageMultipliers[stage]
   const brazilMult = homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME ? BRAZIL_MULTIPLIER : 1
-  const bigGameMult =
-    options.bigGame &&
-    options.matchId &&
-    options.bigGame.matchId === options.matchId &&
-    Number.isFinite(options.bigGame.multiplier) &&
-    options.bigGame.multiplier > 0
-      ? options.bigGame.multiplier
-      : 1
+  const bigGameMult = bigGameMultiplier(options.matchId, options.bigGames)
   return stageMult * brazilMult * bigGameMult
 }
 
-export function isBigGame(matchId: string, bigGame: BigGameConfig | null | undefined): boolean {
-  return !!bigGame && bigGame.matchId === matchId && bigGame.multiplier > 0
+export function isBigGame(matchId: string, bigGames: BigGames | null | undefined): boolean {
+  return bigGameMultiplier(matchId, bigGames) > 1
 }
 
 export interface ComputePointsArgs {
@@ -147,7 +179,7 @@ export interface ComputePointsArgs {
   pointValues?: PointValues
   stageMultipliers?: StageMultipliers
   matchId?: string
-  bigGame?: BigGameConfig | null
+  bigGames?: BigGames | null
 }
 
 export interface ComputePointsResult {
@@ -166,10 +198,10 @@ export function computePoints({
   pointValues = DEFAULT_POINTS,
   stageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
   matchId,
-  bigGame,
+  bigGames,
 }: ComputePointsArgs): ComputePointsResult {
   const tier = classifyTier(prediction, actual)
   const base = tier === 'wrong' ? 0 : pointValues[tier]
-  const multiplier = multiplierFor(stage, homeTeam, awayTeam, stageMultipliers, { matchId, bigGame })
+  const multiplier = multiplierFor(stage, homeTeam, awayTeam, stageMultipliers, { matchId, bigGames })
   return { tier, base, multiplier, total: base * multiplier }
 }

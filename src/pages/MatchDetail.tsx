@@ -8,8 +8,8 @@ import { isPredictionOpen, predictionOpensAt, submitPrediction } from '@/api/pre
 import { ScoreStepper } from '@/components/ScoreStepper'
 import { EveryonesPicks } from '@/components/EveryonesPicks'
 import { useT, useLocale, bcp47 } from '@/i18n'
-import { multiplierFor, type BigGameConfig } from '@/scoring'
-import { useBigGame } from '@/hooks/useMetaConfig'
+import { bigGameMultiplier, isBigGame, multiplierFor, type BigGames } from '@/scoring'
+import { useBigGames } from '@/hooks/useMetaConfig'
 import type { Match, Stage } from '@/types'
 
 const STAGE_KEY: Record<Stage, string> = {
@@ -34,14 +34,14 @@ function formatKickoff(ms: number, locale: string): string {
 
 import { getTeamEmblemUrl } from '@/utils/emblems'
 
-function MatchHeader({ match, bigGame }: { match: Match; bigGame: BigGameConfig | null }) {
+function MatchHeader({ match, bigGames }: { match: Match; bigGames: BigGames }) {
   const t = useT()
   const { locale } = useLocale()
   const stageLabel = match.group ? `${t(STAGE_KEY[match.stage])} · ${match.group}` : t(STAGE_KEY[match.stage])
-  const isBig = bigGame?.matchId === match.id
+  const isBig = isBigGame(match.id, bigGames)
   const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
     matchId: match.id,
-    bigGame,
+    bigGames,
   })
   return (
     <header className="space-y-4">
@@ -96,8 +96,8 @@ export function MatchDetail() {
   const myPrediction = useMyPrediction(id, user?.uid)
   const t = useT()
   const { locale } = useLocale()
-  const bigGame = useBigGame()
-  const isBig = !!match && bigGame?.matchId === match.id
+  const bigGames = useBigGames()
+  const isBig = !!match && isBigGame(match.id, bigGames)
   useSync()
   const [home, setHome] = useState(0)
   const [away, setAway] = useState(0)
@@ -152,8 +152,8 @@ export function MatchDetail() {
   if (!isLocked && !predictionsOpen) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
-        <MatchHeader match={match} bigGame={bigGame} />
-        {isBig && <BigGameBanner multiplier={bigGame!.multiplier} />}
+        <MatchHeader match={match} bigGames={bigGames} />
+        {isBig && <BigGameBanner multiplier={bigGameMultiplier(match.id, bigGames)} />}
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-2">
           <h2 className="font-semibold text-slate-200">{t('matchDetail.predictionsNotOpenHeading')}</h2>
           <p className="text-sm text-slate-400">
@@ -168,7 +168,7 @@ export function MatchDetail() {
     const stageLabel = match.group ? `${t(STAGE_KEY[match.stage])} · ${match.group}` : t(STAGE_KEY[match.stage])
     const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
       matchId: match.id,
-      bigGame,
+      bigGames,
     })
     return (
       <form
@@ -272,8 +272,8 @@ export function MatchDetail() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
-      <MatchHeader match={match} bigGame={bigGame} />
-      {isBig && <BigGameBanner multiplier={bigGame!.multiplier} />}
+      <MatchHeader match={match} bigGames={bigGames} />
+      {isBig && <BigGameBanner multiplier={bigGameMultiplier(match.id, bigGames)} />}
 
       <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h2 className="font-semibold">{t('matchDetail.locked')}</h2>

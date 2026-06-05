@@ -1,4 +1,4 @@
-import { ref, set, update } from 'firebase/database'
+import { get, ref, set, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { recomputeAllUserScores } from '@/scoring/recompute'
 import type {
@@ -76,11 +76,44 @@ export async function setPrizePerUser(amount: number): Promise<void> {
   await set(ref(db, 'meta/config/prizePerUser'), value)
 }
 
-export async function setBigGame(config: BigGameConfig | null): Promise<void> {
-  const value =
-    config && config.matchId && Number.isFinite(config.multiplier) && config.multiplier > 0
-      ? { matchId: config.matchId, multiplier: config.multiplier }
-      : null
-  await set(ref(db, 'meta/config/bigGame'), value)
+/**
+ * Fold any legacy single `bigGame` into the `bigGames` map and clear it, so
+ * the old single-match config is migrated the first time an admin edits.
+ * Mutates `updates` (a multi-path update object).
+ */
+async function migrateLegacyBigGame(updates: Record<string, unknown>): Promise<void> {
+  const snap = await get(ref(db, 'meta/config/bigGame'))
+  const legacy = snap.val() as BigGameConfig | null
+  if (
+    legacy &&
+    typeof legacy.matchId === 'string' &&
+    Number.isFinite(legacy.multiplier) &&
+    legacy.multiplier > 0
+  ) {
+    const key = `meta/config/bigGames/${legacy.matchId}`
+    if (!(key in updates)) updates[key] = legacy.multiplier
+  }
+  updates['meta/config/bigGame'] = null
+}
+
+/** Add or update a single big game (matchId -> multiplier). */
+export async function setBigGame(matchId: string, multiplier: number): Promise<void> {
+  if (!matchId || !Number.isFinite(multiplier) || multiplier <= 0) return
+  const updates: Record<string, unknown> = {
+    [`meta/config/bigGames/${matchId}`]: multiplier,
+  }
+  await migrateLegacyBigGame(updates)
+  await update(ref(db), updates)
+  await recomputeAllUserScores()
+}
+
+/** Remove a single big game by matchId. */
+export async function removeBigGame(matchId: string): Promise<void> {
+  if (!matchId) return
+  const updates: Record<string, unknown> = {}
+  await migrateLegacyBigGame(updates)
+  // Applied after migration so it wins if the removed match was the legacy one.
+  updates[`meta/config/bigGames/${matchId}`] = null
+  await update(ref(db), updates)
   await recomputeAllUserScores()
 }

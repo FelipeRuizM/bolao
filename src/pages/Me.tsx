@@ -4,12 +4,12 @@ import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import { useMatches } from '@/hooks/useMatches'
-import { useBigGame } from '@/hooks/useMetaConfig'
+import { useBigGames } from '@/hooks/useMetaConfig'
 import { useMyPredictions } from '@/hooks/usePrediction'
 import { useSync } from '@/hooks/useSync'
 import { TierBadge } from '@/components/TierBadge'
 import { useT, useLocale, bcp47 } from '@/i18n'
-import { computePoints, isBrazilMatch, multiplierFor, type Tier } from '@/scoring'
+import { computePoints, isBigGame, isBrazilMatch, multiplierFor, type Tier } from '@/scoring'
 import { getTeamEmblemUrl } from '@/utils/emblems'
 import type { Match, Prediction, Stage, UserScore } from '@/types'
 
@@ -43,7 +43,7 @@ export function Me() {
   const { user } = useAuth()
   const t = useT()
   const { locale } = useLocale()
-  const bigGame = useBigGame()
+  const bigGames = useBigGames()
   useSync()
   const { matches } = useMatches()
   const myPredictions = useMyPredictions(user?.uid)
@@ -70,7 +70,7 @@ export function Me() {
           homeTeam: m.homeTeam,
           awayTeam: m.awayTeam,
           matchId: m.id,
-          bigGame,
+          bigGames,
         })
         result = { points: r.total, tier: r.tier }
       }
@@ -78,7 +78,7 @@ export function Me() {
     }
     out.sort((a, b) => b.match.kickoffAt - a.match.kickoffAt)
     return out
-  }, [matches, myPredictions, bigGame])
+  }, [matches, myPredictions, bigGames])
 
   const summary = useMemo(() => {
     let total = 0
@@ -149,11 +149,11 @@ export function Me() {
       <div className="space-y-3">
         {rows.map(({ match, prediction, result }) => {
           const stageLabel = match.group ? `${match.group}` : t(SHORT_STAGE_KEY[match.stage])
-          const isBig = bigGame?.matchId === match.id
+          const isBig = isBigGame(match.id, bigGames)
           const isBrazil = isBrazilMatch(match.homeTeam, match.awayTeam)
           const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
             matchId: match.id,
-            bigGame,
+            bigGames,
           })
           const isExact = result?.tier === 'exact'
           return (

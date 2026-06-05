@@ -89,7 +89,7 @@ describe('multiplierFor', () => {
     expect(
       multiplierFor('group', 'Brazil', 'Serbia', undefined, {
         matchId: 'm1',
-        bigGame: { matchId: 'm1', multiplier: 2 },
+        bigGames: { m1: 2 },
       }),
     ).toBe(6)
   })
@@ -98,15 +98,22 @@ describe('multiplierFor', () => {
     expect(
       multiplierFor('group', 'Spain', 'Morocco', undefined, {
         matchId: 'm2',
-        bigGame: { matchId: 'm1', multiplier: 2 },
+        bigGames: { m1: 2 },
       }),
     ).toBe(1)
+  })
+
+  it('multiple big games each apply to their own match', () => {
+    const bigGames = { m1: 2, m2: 4 }
+    expect(multiplierFor('group', 'Spain', 'Morocco', undefined, { matchId: 'm1', bigGames })).toBe(2)
+    expect(multiplierFor('group', 'Spain', 'Morocco', undefined, { matchId: 'm2', bigGames })).toBe(4)
+    expect(multiplierFor('group', 'Spain', 'Morocco', undefined, { matchId: 'm3', bigGames })).toBe(1)
   })
 
   it('big game multiplier ignored when matchId missing', () => {
     expect(
       multiplierFor('group', 'Spain', 'Morocco', undefined, {
-        bigGame: { matchId: 'm1', multiplier: 2 },
+        bigGames: { m1: 2 },
       }),
     ).toBe(1)
   })
@@ -115,7 +122,7 @@ describe('multiplierFor', () => {
     expect(
       multiplierFor('group', 'Spain', 'Morocco', undefined, {
         matchId: 'm1',
-        bigGame: { matchId: 'm1', multiplier: 0 },
+        bigGames: { m1: 0 },
       }),
     ).toBe(1)
   })
@@ -192,7 +199,7 @@ describe('computePoints integration', () => {
       homeTeam: 'Brazil',
       awayTeam: 'Argentina',
       matchId: 'final-match',
-      bigGame: { matchId: 'final-match', multiplier: 2 },
+      bigGames: { 'final-match': 2 },
     })
     expect(r.tier).toBe('exact')
     expect(r.multiplier).toBe(36)
