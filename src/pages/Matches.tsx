@@ -3,12 +3,21 @@ import { useMatches } from '@/hooks/useMatches'
 import { useMyPredictions } from '@/hooks/usePrediction'
 import { useAuth } from '@/hooks/useAuth'
 import { useSync } from '@/hooks/useSync'
+import { isPredictionOpen, predictionOpensAt } from '@/api/predictions'
 import { useLocale, useT, bcp47 } from '@/i18n'
 import { MatchCard } from '@/components/MatchCard'
 import { brDayKey } from '@/utils/datetime'
 import type { Match } from '@/types'
 
-type Filter = 'upcoming' | 'all'
+type Filter = 'open' | 'future' | 'previous' | 'all'
+
+const FILTERS: Filter[] = ['open', 'future', 'previous', 'all']
+const FILTER_LABEL: Record<Filter, string> = {
+  open: 'matches.filterOpen',
+  future: 'matches.filterFuture',
+  previous: 'matches.filterPrevious',
+  all: 'matches.filterAll',
+}
 
 function formatDateHeader(isoDate: string, locale: string): string {
   // Build noon so the rendered weekday/day always matches `isoDate` regardless
@@ -24,13 +33,26 @@ export function Matches() {
   const { locale } = useLocale()
   const t = useT()
   useSync()
-  const [filter, setFilter] = useState<Filter>('upcoming')
-
-  const hasFinished = useMemo(() => !!matches && matches.some((m) => m.status === 'FT'), [matches])
+  const [filter, setFilter] = useState<Filter>('open')
 
   const visibleMatches = useMemo(() => {
     if (!matches) return null
-    return filter === 'all' ? matches : matches.filter((m) => m.status !== 'FT')
+    const now = Date.now()
+    switch (filter) {
+      case 'all':
+        return matches
+      case 'previous':
+        return matches.filter((m) => m.status === 'FT')
+      case 'future':
+        // Scheduled games still beyond the prediction window (not pickable yet).
+        return matches.filter((m) => m.status === 'SCHEDULED' && now < predictionOpensAt(m.kickoffAt))
+      case 'open':
+      default:
+        // Pickable right now: prediction window open, plus live games.
+        return matches.filter(
+          (m) => m.status !== 'FT' && (m.status === 'LIVE' || isPredictionOpen(m.kickoffAt, now)),
+        )
+    }
   }, [matches, filter])
 
   const grouped = useMemo(() => {
@@ -45,32 +67,24 @@ export function Matches() {
 
   return (
     <div className="max-w-5xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-6">
-      <div className="flex items-center justify-between gap-3 px-1">
+      <div className="space-y-3 px-1">
         <h1 className="text-2xl font-bold">{t('matches.title')}</h1>
-        {hasFinished && (
+        {matches !== null && matches.length > 0 && (
           <div className="flex rounded-lg bg-slate-800/60 border border-slate-700 p-0.5 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setFilter('upcoming')}
-              className={`px-3 py-1.5 rounded-md transition-colors ${
-                filter === 'upcoming'
-                  ? 'bg-slate-700 text-slate-100'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {t('matches.filterUpcoming')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter('all')}
-              className={`px-3 py-1.5 rounded-md transition-colors ${
-                filter === 'all'
-                  ? 'bg-slate-700 text-slate-100'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {t('matches.filterAll')}
-            </button>
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={`flex-1 px-2 py-1.5 rounded-md text-center transition-colors ${
+                  filter === f
+                    ? 'bg-slate-700 text-slate-100'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {t(FILTER_LABEL[f])}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -89,7 +103,13 @@ export function Matches() {
 
       {visibleMatches !== null && visibleMatches.length === 0 && matches !== null && matches.length > 0 && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">
-          {t('matches.noUpcoming')}
+          {t(
+            filter === 'previous'
+              ? 'matches.noPrevious'
+              : filter === 'future'
+                ? 'matches.noFuture'
+                : 'matches.noOpen',
+          )}
         </div>
       )}
 
