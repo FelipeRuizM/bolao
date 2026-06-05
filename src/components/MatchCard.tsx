@@ -46,7 +46,19 @@ function StatusPill({ status }: { status: Match['status'] }) {
   return <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold tracking-wide ${styles}`}>{label}</span>
 }
 
-export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?: Prediction }) {
+export function MatchCard({
+  match,
+  myPrediction,
+  pickedCount,
+  totalPlayers,
+}: {
+  match: Match
+  myPrediction?: Prediction
+  /** How many players have already picked this match (presence only, no values). */
+  pickedCount?: number
+  /** Total players, for the "N of M picked" message. */
+  totalPlayers?: number
+}) {
   const t = useT()
   const { locale } = useLocale()
   const bigGames = useBigGames()
@@ -156,6 +168,14 @@ export function MatchCard({ match, myPrediction }: { match: Match; myPrediction?
       <div className="relative text-sm font-medium text-slate-500 mt-6 text-center">
         {formatKickoff(match.kickoffAt, bcp47(locale))}
       </div>
+
+      {match.status === 'SCHEDULED' && pickedCount !== undefined && (
+        <div className="relative mt-2 text-center text-xs font-medium text-slate-400">
+          {pickedCount > 0
+            ? t('matchCard.pickedCount', { n: pickedCount, total: totalPlayers ?? pickedCount })
+            : t('matchCard.nonePicked')}
+        </div>
+      )}
     </Link>
   )
 }

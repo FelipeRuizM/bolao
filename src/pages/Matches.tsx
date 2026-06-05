@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useMatches } from '@/hooks/useMatches'
 import { useMyPredictions } from '@/hooks/usePrediction'
+import { useAllPickStatus } from '@/hooks/useMatchPredictions'
+import { useUsers } from '@/hooks/useUsers'
 import { useAuth } from '@/hooks/useAuth'
 import { useSync } from '@/hooks/useSync'
 import { isPredictionOpen, predictionOpensAt } from '@/api/predictions'
@@ -30,10 +32,14 @@ export function Matches() {
   const { matches, error } = useMatches()
   const { user } = useAuth()
   const myPredictions = useMyPredictions(user?.uid)
+  const pickStatus = useAllPickStatus()
+  const users = useUsers()
   const { locale } = useLocale()
   const t = useT()
   useSync()
   const [filter, setFilter] = useState<Filter>('open')
+
+  const totalPlayers = Object.keys(users).length
 
   const visibleMatches = useMemo(() => {
     if (!matches) return null
@@ -141,7 +147,13 @@ export function Matches() {
           </h2>
           <div className="space-y-2">
             {dayMatches.map((m) => (
-              <MatchCard key={m.id} match={m} myPrediction={myPredictions[m.id]} />
+              <MatchCard
+                key={m.id}
+                match={m}
+                myPrediction={myPredictions[m.id]}
+                pickedCount={pickStatus ? Object.keys(pickStatus[m.id] ?? {}).length : undefined}
+                totalPlayers={totalPlayers}
+              />
             ))}
           </div>
         </section>

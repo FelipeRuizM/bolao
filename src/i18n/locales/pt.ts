@@ -70,6 +70,8 @@ const pt: typeof en = {
     statusLive: 'AO VIVO',
     statusFinal: 'Encerrado',
     bigGameBadge: 'JOGÃO',
+    pickedCount: '✓ {n} de {total} jogadores já palpitaram',
+    nonePicked: 'Nenhum palpite ainda — seja o primeiro!',
   },
   matchDetail: {
     backToMatches: '← Todos os jogos',

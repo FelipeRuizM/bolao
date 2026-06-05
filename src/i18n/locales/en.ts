@@ -68,6 +68,8 @@ const en = {
     statusLive: 'LIVE',
     statusFinal: 'Final',
     bigGameBadge: 'BIG GAME',
+    pickedCount: '✓ {n} of {total} players have picked',
+    nonePicked: 'No picks yet — be the first!',
   },
   matchDetail: {
     backToMatches: '← All matches',

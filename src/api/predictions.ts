@@ -1,4 +1,4 @@
-import { ref, serverTimestamp, update } from 'firebase/database'
+import { ref, serverTimestamp, set, update } from 'firebase/database'
 import { db } from '@/firebase'
 
 /** Picking opens 7 days before kickoff and closes at kickoff. */
@@ -48,4 +48,8 @@ export async function submitPrediction(
     [`predictions/${matchId}/${uid}`]: payload,
     [`userPredictions/${uid}/${matchId}`]: payload,
   })
+  // Value-free "has picked" flag so others can see *that* you picked before
+  // kickoff (never the score). Best-effort and decoupled from the write above:
+  // if the rule for this path isn't deployed yet, it must not block the pick.
+  void set(ref(db, `predictionStatus/${matchId}/${uid}`), true).catch(() => {})
 }

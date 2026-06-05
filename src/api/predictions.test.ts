@@ -6,6 +6,7 @@ vi.mock('firebase/database', () => ({
   ref: () => ({}),
   serverTimestamp: () => ({ '.sv': 'timestamp' }),
   update: vi.fn(async () => undefined),
+  set: vi.fn(async () => undefined),
 }))
 
 describe('submitPrediction', () => {
