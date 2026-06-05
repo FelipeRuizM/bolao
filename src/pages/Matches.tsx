@@ -5,15 +5,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { useSync } from '@/hooks/useSync'
 import { useLocale, useT, bcp47 } from '@/i18n'
 import { MatchCard } from '@/components/MatchCard'
+import { brDayKey } from '@/utils/datetime'
 import type { Match } from '@/types'
 
 type Filter = 'upcoming' | 'all'
 
-function dateKey(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 10)
-}
-
 function formatDateHeader(isoDate: string, locale: string): string {
+  // Build noon so the rendered weekday/day always matches `isoDate` regardless
+  // of the runtime zone (the day key is already in Brazil time).
   const d = new Date(`${isoDate}T12:00:00`)
   return d.toLocaleDateString(locale, { weekday: 'long', month: 'short', day: 'numeric' })
 }
@@ -38,7 +37,7 @@ export function Matches() {
     if (!visibleMatches) return null
     const groups: Record<string, Match[]> = {}
     for (const m of visibleMatches) {
-      const k = dateKey(m.kickoffAt)
+      const k = brDayKey(m.kickoffAt)
       ;(groups[k] ??= []).push(m)
     }
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))

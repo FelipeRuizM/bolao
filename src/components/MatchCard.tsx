@@ -5,6 +5,7 @@ import { isBigGame, isBrazilMatch, multiplierFor } from '@/scoring'
 import { useBigGames } from '@/hooks/useMetaConfig'
 import type { Match, Prediction, Stage } from '@/types'
 import { getTeamEmblemUrl } from '@/utils/emblems'
+import { formatBR } from '@/utils/datetime'
 
 const SHORT_STAGE_KEY: Record<Stage, string> = {
   group: 'stages.groupShort',
@@ -17,7 +18,7 @@ const SHORT_STAGE_KEY: Record<Stage, string> = {
 }
 
 function formatKickoff(ms: number, locale: string): string {
-  return new Date(ms).toLocaleString(locale, {
+  return formatBR(ms, locale, {
     weekday: 'short',
     hour: '2-digit',
     minute: '2-digit',
@@ -25,7 +26,7 @@ function formatKickoff(ms: number, locale: string): string {
 }
 
 function formatShortDate(ms: number, locale: string): string {
-  return new Date(ms).toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+  return formatBR(ms, locale, { month: 'short', day: 'numeric' })
 }
 
 function StatusPill({ status }: { status: Match['status'] }) {

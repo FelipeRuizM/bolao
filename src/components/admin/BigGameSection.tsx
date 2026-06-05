@@ -4,13 +4,11 @@ import { useBigGames } from '@/hooks/useMetaConfig'
 import { useMatches } from '@/hooks/useMatches'
 import { bcp47, useLocale, useT, type TFunction } from '@/i18n'
 import { AdminButton, AdminCard, StatusLine } from './AdminCard'
+import { formatBR } from '@/utils/datetime'
 import type { Match } from '@/types'
 
 function formatLabel(m: Match, locale: string, t: TFunction): string {
-  const d = new Date(m.kickoffAt).toLocaleDateString(locale, {
-    month: 'short',
-    day: 'numeric',
-  })
+  const d = formatBR(m.kickoffAt, locale, { month: 'short', day: 'numeric' })
   return `${t.team(m.homeTeam)} vs ${t.team(m.awayTeam)} · ${d}`
 }
 

@@ -3,6 +3,7 @@ import { bcp47, useLocale, useT } from '@/i18n'
 import { isBigGame, isBrazilMatch, multiplierFor, type BigGames, type Tier } from '@/scoring'
 import { TierBadge } from '@/components/TierBadge'
 import { getTeamEmblemUrl } from '@/utils/emblems'
+import { formatBR } from '@/utils/datetime'
 import type { Match, Prediction, Stage } from '@/types'
 
 const SHORT_STAGE_KEY: Record<Stage, string> = {
@@ -16,7 +17,7 @@ const SHORT_STAGE_KEY: Record<Stage, string> = {
 }
 
 function formatKickoff(ms: number, locale: string): string {
-  return new Date(ms).toLocaleString(locale, {
+  return formatBR(ms, locale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

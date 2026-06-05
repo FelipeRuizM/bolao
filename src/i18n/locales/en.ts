@@ -33,6 +33,7 @@ const en = {
     noPlayers: "No players yet. Once admin creates accounts and they sign in, they'll show up here.",
     pointsOverTime: 'Points over time',
     pointsStart: 'Start',
+    feedTitle: 'Recent points',
     filterAll: 'All',
     filterPool: 'Pool',
     poolEmpty: "No paid players yet. Use the Admin page to mark friends who've joined the pool.",

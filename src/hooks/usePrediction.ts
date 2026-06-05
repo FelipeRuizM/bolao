@@ -42,17 +42,14 @@ export function useMyPredictions(uid: string | undefined) {
 export function usePlayerPredictions(uid: string | undefined, matches: Match[] | null) {
   const [predictions, setPredictions] = useState<Record<string, Prediction> | null>(null)
 
-  // Only re-fetch when the set of started matches changes, not on every tick.
-  const startedIds = (matches ?? [])
+  // Re-fetch only when the set of started match IDs changes, not on every tick.
+  const startedKey = (matches ?? [])
     .filter((m) => m.status !== 'SCHEDULED')
     .map((m) => m.id)
-  const startedKey = startedIds.join(',')
+    .join(',')
 
   useEffect(() => {
-    if (!uid || matches === null) {
-      setPredictions(null)
-      return
-    }
+    if (!uid) return
     let cancelled = false
     const ids = startedKey ? startedKey.split(',') : []
     Promise.all(
@@ -73,8 +70,7 @@ export function usePlayerPredictions(uid: string | undefined, matches: Match[] |
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid, startedKey, matches === null])
+  }, [uid, startedKey])
 
   return predictions
 }

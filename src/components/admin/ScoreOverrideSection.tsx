@@ -3,15 +3,13 @@ import { useMatches } from '@/hooks/useMatches'
 import { overrideMatchResult } from '@/api/admin'
 import { useLocale, useT, bcp47, type TFunction } from '@/i18n'
 import { AdminButton, AdminCard, StatusLine } from './AdminCard'
+import { formatBR } from '@/utils/datetime'
 import type { Match, MatchStatus } from '@/types'
 
 const STATUSES: MatchStatus[] = ['SCHEDULED', 'LIVE', 'FT']
 
 function formatLabel(m: Match, locale: string, t: TFunction): string {
-  const d = new Date(m.kickoffAt).toLocaleDateString(locale, {
-    month: 'short',
-    day: 'numeric',
-  })
+  const d = formatBR(m.kickoffAt, locale, { month: 'short', day: 'numeric' })
   return `${t.team(m.homeTeam)} vs ${t.team(m.awayTeam)} · ${d}`
 }
 

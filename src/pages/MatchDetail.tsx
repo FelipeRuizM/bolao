@@ -23,7 +23,7 @@ const STAGE_KEY: Record<Stage, string> = {
 }
 
 function formatKickoff(ms: number, locale: string): string {
-  return new Date(ms).toLocaleString(locale, {
+  return formatBR(ms, locale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -33,6 +33,7 @@ function formatKickoff(ms: number, locale: string): string {
 }
 
 import { getTeamEmblemUrl } from '@/utils/emblems'
+import { formatBR } from '@/utils/datetime'
 
 function MatchHeader({ match, bigGames }: { match: Match; bigGames: BigGames }) {
   const t = useT()
@@ -259,7 +260,10 @@ export function MatchDetail() {
               {hasPrediction && myPrediction?.submittedAt && (
                 <p className="text-xs text-slate-500 text-center">
                   {t('matchDetail.lastSaved', {
-                    when: new Date(myPrediction.submittedAt).toLocaleString(bcp47(locale)),
+                    when: formatBR(myPrediction.submittedAt, bcp47(locale), {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    }),
                   })}
                 </p>
               )}

@@ -8,6 +8,7 @@ import { usePrizePerUser } from '@/hooks/useMetaConfig'
 import { useSync } from '@/hooks/useSync'
 import { useT } from '@/i18n'
 import { RankOverTime } from '@/components/RankOverTime'
+import { PointsFeed } from '@/components/PointsFeed'
 import { PRIZE_SHARES, formatBRL, splitPrize } from '@/utils/currency'
 import type { UserScore, UserProfile } from '@/types'
 
@@ -177,6 +178,7 @@ export function Home() {
               </li>
             ))}
           </ol>
+          <PointsFeed />
           <RankOverTime highlightUid={user?.uid ?? null} filterUids={filterUids} />
         </>
       )}

@@ -11,6 +11,7 @@ import {
 import { submitBonusPicks } from '@/api/bonus'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { useConfig } from '@/hooks/useConfig'
+import { formatBR } from '@/utils/datetime'
 import {
   DEFAULT_BONUS_VALUES,
   computeBonusPoints,
@@ -19,7 +20,7 @@ import {
 } from '@/scoring'
 
 function formatDateTime(ms: number, locale: string): string {
-  return new Date(ms).toLocaleString(locale, {
+  return formatBR(ms, locale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

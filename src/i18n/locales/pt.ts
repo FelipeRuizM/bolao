@@ -35,6 +35,7 @@ const pt: typeof en = {
     noPlayers: 'Nenhum jogador ainda. Assim que o admin criar contas e elas entrarem, aparecerão aqui.',
     pointsOverTime: 'Pontos ao longo do tempo',
     pointsStart: 'Início',
+    feedTitle: 'Pontos recentes',
     filterAll: 'Todos',
     filterPool: 'Bolão',
     poolEmpty: 'Nenhum jogador pago ainda. Use a página Admin para marcar quem entrou no bolão.',
