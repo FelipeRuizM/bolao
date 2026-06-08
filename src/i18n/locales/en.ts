@@ -3,6 +3,7 @@ const en = {
   nav: {
     leaderboard: 'Leaderboard',
     matches: 'Matches',
+    quickPick: 'Quick Pick',
     myPicks: 'My Picks',
     bonus: 'Bonus',
     profile: 'Profile',
@@ -58,6 +59,16 @@ const en = {
     noPrevious: 'No finished matches yet.',
     unpickedOne: "You still have 1 open match without a pick — don't miss it!",
     unpickedMany: 'You still have {count} open matches without a pick — don\'t miss them!',
+  },
+  quickPick: {
+    title: 'Quick Pick',
+    subtitle: '{count} matches open for picking',
+    hint: 'Tap a common score or use the arrows. Each pick saves on its own.',
+    empty: 'No matches are open for picking right now.',
+    saving: 'Saving…',
+    saved: 'Saved',
+    error: 'Not saved',
+    cta: 'Pick fast',
   },
   matchCard: {
     vs: 'vs',

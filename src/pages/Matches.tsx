@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMatches } from '@/hooks/useMatches'
 import { useMyPredictions } from '@/hooks/usePrediction'
 import { useAllPickStatus } from '@/hooks/useMatchPredictions'
@@ -104,14 +105,18 @@ export function Matches() {
       </div>
 
       {filter === 'open' && openUnpickedCount > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-4 py-3 text-sm text-brand-200">
+        <Link
+          to="/quick"
+          className="flex items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-4 py-3 text-sm text-brand-200 hover:bg-brand-500/20 transition-colors"
+        >
           <span className="text-lg leading-none" aria-hidden="true">⏰</span>
-          <span className="font-medium">
+          <span className="font-medium flex-1">
             {t(openUnpickedCount === 1 ? 'matches.unpickedOne' : 'matches.unpickedMany', {
               count: openUnpickedCount,
             })}
           </span>
-        </div>
+          <span className="shrink-0 text-xs font-semibold text-brand-300">{t('quickPick.cta')} →</span>
+        </Link>
       )}
 
       {error && (

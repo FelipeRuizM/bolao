@@ -5,6 +5,7 @@ const pt: typeof en = {
   nav: {
     leaderboard: 'Ranking',
     matches: 'Jogos',
+    quickPick: 'Palpite Rápido',
     myPicks: 'Meus Palpites',
     bonus: 'Bônus',
     profile: 'Perfil',
@@ -60,6 +61,16 @@ const pt: typeof en = {
     noPrevious: 'Nenhum jogo encerrado ainda.',
     unpickedOne: 'Você ainda tem 1 jogo aberto sem palpite — não perca!',
     unpickedMany: 'Você ainda tem {count} jogos abertos sem palpite — não perca!',
+  },
+  quickPick: {
+    title: 'Palpite Rápido',
+    subtitle: '{count} jogos abertos para palpite',
+    hint: 'Toque em um placar comum ou use as setas. Cada palpite é salvo sozinho.',
+    empty: 'Nenhum jogo aberto para palpite no momento.',
+    saving: 'Salvando…',
+    saved: 'Salvo',
+    error: 'Não salvo',
+    cta: 'Palpitar rápido',
   },
   matchCard: {
     vs: 'x',

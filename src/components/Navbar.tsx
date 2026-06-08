@@ -36,6 +36,7 @@ export function Navbar() {
           <div className="hidden sm:flex items-center gap-1">
             <NavLink to="/" end className={linkClass}>{t('nav.leaderboard')}</NavLink>
             <NavLink to="/matches" className={linkClass}>{t('nav.matches')}</NavLink>
+            <NavLink to="/quick" className={linkClass}>{t('nav.quickPick')}</NavLink>
             <NavLink to="/me" className={linkClass}>{t('nav.myPicks')}</NavLink>
             <NavLink to="/bonus" className={linkClass}>{t('nav.bonus')}</NavLink>
             {isAdmin && <NavLink to="/admin" className={linkClass}>{t('nav.admin')}</NavLink>}
@@ -84,6 +85,7 @@ export function Navbar() {
           <div className="flex flex-col gap-1">
             <NavLink to="/" end className={linkClass} onClick={closeMenu}>{t('nav.leaderboard')}</NavLink>
             <NavLink to="/matches" className={linkClass} onClick={closeMenu}>{t('nav.matches')}</NavLink>
+            <NavLink to="/quick" className={linkClass} onClick={closeMenu}>{t('nav.quickPick')}</NavLink>
             <NavLink to="/me" className={linkClass} onClick={closeMenu}>{t('nav.myPicks')}</NavLink>
             <NavLink to="/bonus" className={linkClass} onClick={closeMenu}>{t('nav.bonus')}</NavLink>
             <NavLink to="/profile" className={linkClass} onClick={closeMenu}>{t('nav.profile')}</NavLink>
