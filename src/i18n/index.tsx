@@ -28,10 +28,9 @@ function detectInitialLocale(): Locale {
   } catch {
     // localStorage may be unavailable (SSR, privacy modes)
   }
-  if (typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('pt')) {
-    return 'pt'
-  }
-  return 'en'
+  // Default to Portuguese — the pool's audience is Brazilian. Users can still
+  // switch to English via the language toggle (that choice is stored above).
+  return 'pt'
 }
 
 function lookup(dict: unknown, path: string[]): string | undefined {
