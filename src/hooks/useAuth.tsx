@@ -14,8 +14,33 @@ import {
 } from 'firebase/auth'
 import { get, onValue, ref, set } from 'firebase/database'
 import { auth, db } from '@/firebase'
+import type { UserProfile } from '@/types'
 
 export type AuthStatus = 'loading' | 'signed-out' | 'not-allowed' | 'signed-in' | 'error'
+
+/**
+ * Resolve a friend group for an email from the admin-managed
+ * `meta/config/userGroups` list (entries of `{ email, group }`). Stored as a
+ * list rather than a keyed map because emails contain '.', which RTDB keys
+ * disallow. Returns undefined when there's no entry (→ the default group).
+ */
+async function lookupGroupForEmail(email: string | null | undefined): Promise<string | undefined> {
+  if (!email) return undefined
+  try {
+    const snap = await get(ref(db, 'meta/config/userGroups'))
+    const val = snap.val() as
+      | Array<{ email?: string; group?: string }>
+      | Record<string, { email?: string; group?: string }>
+      | null
+    if (!val) return undefined
+    const entries = Array.isArray(val) ? val : Object.values(val)
+    const target = email.toLowerCase()
+    const found = entries.find((e) => e?.email?.toLowerCase() === target)
+    return found?.group?.trim() || undefined
+  } catch {
+    return undefined
+  }
+}
 
 interface AuthContextValue {
   user: User | null
@@ -89,11 +114,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const snap = await get(ref(db, `users/${user.uid}`))
         if (cancelled || snap.exists()) return
-        await set(ref(db, `users/${user.uid}`), {
+        const profile: UserProfile = {
           displayName: user.email?.split('@')[0] ?? user.uid.slice(0, 6),
           email: user.email ?? '',
           role: 'player',
-        })
+        }
+        // Stamp the friend group from the admin-managed email→group map so a new
+        // member lands in the right group's leaderboard on their first login.
+        const group = await lookupGroupForEmail(user.email)
+        if (group) profile.group = group
+        if (cancelled) return
+        await set(ref(db, `users/${user.uid}`), profile)
       } catch (err) {
         console.warn('Failed to create user profile:', err)
       }

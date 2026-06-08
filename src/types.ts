@@ -34,6 +34,8 @@ export interface UserProfile {
   role: 'player' | 'admin'
   email: string
   paid?: boolean
+  /** Friend group this user belongs to. Undefined = the default group. */
+  group?: string
 }
 
 export interface UserScore {

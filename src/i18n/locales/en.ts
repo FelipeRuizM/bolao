@@ -160,6 +160,7 @@ const en = {
     titleSelf: 'You',
     bonusPoints: 'Bonus points',
     noPicks: 'No picks for matches that have started yet.',
+    notFound: 'Player not found.',
   },
   stages: {
     group: 'Group stage',
@@ -233,17 +234,18 @@ const en = {
     bonusTopScorerPlaceholder: 'e.g. Vinícius Júnior',
     allowlistHeading: 'Allowed emails',
     allowlistDesc:
-      "Only these emails can sign in. Add a friend's email here AFTER you've created their account in the Firebase console.",
+      "Only these emails can sign in. Add a friend's email here AFTER you've created their account in the Firebase console. Set a group to put them on a separate leaderboard (blank = main).",
     allowlistAdd: 'Add',
     allowlistRemove: 'Remove',
     allowlistEmpty: 'No allowed emails yet.',
     allowlistSaved: 'Saved.',
     playersHeading: 'Players',
     playersDesc:
-      "Mark a player as paid once they've put money into the pool. Paid-only and overall views are toggled from the leaderboard.",
+      "Mark a player as paid once they've put money into the pool. Paid-only and overall views are toggled from the leaderboard. The group box controls which leaderboard a player appears on (blank = main).",
     playersLoading: 'Loading players…',
     playersEmpty: 'No players yet.',
     paidLabel: 'Paid',
+    groupLabel: 'Group',
     prizeHeading: 'Pool prize',
     prizeDesc:
       'Total pot = paid-player count × amount per player. Shown above the leaderboard. Currency: BRL.',

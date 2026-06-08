@@ -162,6 +162,7 @@ const pt: typeof en = {
     titleSelf: 'Você',
     bonusPoints: 'Pontos de bônus',
     noPicks: 'Nenhum palpite em jogos que já começaram.',
+    notFound: 'Jogador não encontrado.',
   },
   stages: {
     group: 'Fase de grupos',
@@ -234,17 +235,18 @@ const pt: typeof en = {
     bonusTopScorerPlaceholder: 'ex.: Vinícius Júnior',
     allowlistHeading: 'E-mails permitidos',
     allowlistDesc:
-      'Somente estes e-mails podem entrar. Adicione o e-mail de um amigo aqui DEPOIS de criar a conta dele no console do Firebase.',
+      'Somente estes e-mails podem entrar. Adicione o e-mail de um amigo aqui DEPOIS de criar a conta dele no console do Firebase. Defina um grupo para colocá-lo em um ranking separado (vazio = main).',
     allowlistAdd: 'Adicionar',
     allowlistRemove: 'Remover',
     allowlistEmpty: 'Nenhum e-mail permitido ainda.',
     allowlistSaved: 'Salvo.',
     playersHeading: 'Jogadores',
     playersDesc:
-      'Marque o jogador como pago quando ele depositar a entrada do bolão. As visões "Bolão" e "Todos" são alternadas no ranking.',
+      'Marque o jogador como pago quando ele depositar a entrada do bolão. As visões "Bolão" e "Todos" são alternadas no ranking. A caixa de grupo controla em qual ranking o jogador aparece (vazio = main).',
     playersLoading: 'Carregando jogadores…',
     playersEmpty: 'Nenhum jogador ainda.',
     paidLabel: 'Pago',
+    groupLabel: 'Grupo',
     prizeHeading: 'Prêmio do bolão',
     prizeDesc:
       'Prêmio total = quantidade de pagantes × valor por jogador. Aparece acima do ranking. Moeda: BRL.',

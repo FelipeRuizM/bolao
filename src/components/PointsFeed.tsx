@@ -45,6 +45,9 @@ export function PointsFeed() {
     const byId = new Map(matches.map((m) => [m.id, m]))
     const list: Entry[] = []
     for (const [uid, score] of Object.entries(scores)) {
+      // users is pre-filtered to the current group; skip anyone outside it so
+      // other-group players don't leak in via their uid prefix.
+      if (!users[uid]) continue
       const perMatch = score?.perMatch
       if (!perMatch) continue
       for (const [matchId, pts] of Object.entries(perMatch)) {

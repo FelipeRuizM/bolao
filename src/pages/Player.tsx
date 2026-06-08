@@ -85,6 +85,23 @@ export function Player() {
   const bonusPts = score?.bonusPts ?? 0
   const isSelf = !!user && user.uid === uid
   const loading = matches === null || predictions === null
+  // `users` is filtered to the current group; once it has loaded (it always
+  // contains the viewer's own profile), a uid that's missing belongs to another
+  // group — don't render their breakdown.
+  const crossGroup = !isSelf && !!uid && Object.keys(users).length > 0 && !users[uid]
+
+  if (crossGroup) {
+    return (
+      <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-5">
+        <Link to="/" className="inline-block text-sm text-brand-500 hover:text-brand-400 font-medium">
+          ← {t('player.back')}
+        </Link>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">
+          {t('player.notFound')}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-5">

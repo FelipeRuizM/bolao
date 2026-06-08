@@ -63,6 +63,25 @@ export async function setUserPaid(uid: string, paid: boolean): Promise<void> {
   await set(ref(db, `users/${uid}/paid`), paid)
 }
 
+/**
+ * Persist the email→group pre-assignment map (used to stamp a new member's
+ * group on first login). Stored as a list of `{ email, group }` because emails
+ * contain '.', which RTDB keys disallow. Entries with the default group are
+ * dropped so the map only records explicit non-default assignments.
+ */
+export async function setUserGroups(map: Record<string, string>): Promise<void> {
+  const entries = Object.entries(map)
+    .map(([email, group]) => ({ email: email.trim().toLowerCase(), group: group.trim() }))
+    .filter((e) => e.email && e.group)
+  await set(ref(db, 'meta/config/userGroups'), entries.length > 0 ? entries : null)
+}
+
+/** Set (or clear, when blank) the friend group of an existing user. */
+export async function setUserGroup(uid: string, group: string): Promise<void> {
+  const g = group.trim()
+  await set(ref(db, `users/${uid}/group`), g || null)
+}
+
 export async function setLockBonusAt(timestamp: number): Promise<void> {
   await set(ref(db, 'meta/config/lockBonusAt'), timestamp)
 }

@@ -4,13 +4,14 @@ import { HelpCircle } from 'lucide-react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
+import { useUsers } from '@/hooks/useUsers'
 import { usePrizePerUser } from '@/hooks/useMetaConfig'
 import { useSync } from '@/hooks/useSync'
 import { useT } from '@/i18n'
 import { RankOverTime } from '@/components/RankOverTime'
 import { PointsFeed } from '@/components/PointsFeed'
 import { PRIZE_SHARES, formatBRL, splitPrize } from '@/utils/currency'
-import type { UserScore, UserProfile } from '@/types'
+import type { UserScore } from '@/types'
 
 interface LeaderboardRow {
   uid: string
@@ -26,38 +27,29 @@ export function Home() {
   const t = useT()
   const prizePerUser = usePrizePerUser()
   useSync()
-  const [rows, setRows] = useState<LeaderboardRow[] | null>(null)
+  // Users come pre-filtered to the current user's friend group, so the whole
+  // leaderboard (and the prize/chart derived from it) stays group-scoped.
+  const users = useUsers()
+  const [scores, setScores] = useState<Record<string, UserScore> | null>(null)
   const [filter, setFilter] = useState<Filter>('pool')
 
   useEffect(() => {
-    let users: Record<string, UserProfile> | null = null
-    let scores: Record<string, UserScore> = {}
-
-    const compose = () => {
-      if (!users) return
-      const list: LeaderboardRow[] = Object.entries(users).map(([uid, profile]) => ({
-        uid,
-        displayName: profile.displayName ?? profile.email ?? uid.slice(0, 6),
-        total: scores[uid]?.total ?? 0,
-        paid: !!profile.paid,
-      }))
-      list.sort((a, b) => b.total - a.total)
-      setRows(list)
-    }
-
-    const unsubUsers = onValue(ref(db, 'users'), (snap) => {
-      users = (snap.val() ?? {}) as Record<string, UserProfile>
-      compose()
+    return onValue(ref(db, 'scores'), (snap) => {
+      setScores((snap.val() ?? {}) as Record<string, UserScore>)
     })
-    const unsubScores = onValue(ref(db, 'scores'), (snap) => {
-      scores = (snap.val() ?? {}) as Record<string, UserScore>
-      compose()
-    })
-    return () => {
-      unsubUsers()
-      unsubScores()
-    }
   }, [])
+
+  const rows = useMemo<LeaderboardRow[] | null>(() => {
+    if (scores === null) return null
+    const list: LeaderboardRow[] = Object.entries(users).map(([uid, profile]) => ({
+      uid,
+      displayName: profile.displayName ?? profile.email ?? uid.slice(0, 6),
+      total: scores[uid]?.total ?? 0,
+      paid: !!profile.paid,
+    }))
+    list.sort((a, b) => b.total - a.total)
+    return list
+  }, [users, scores])
 
   const hasPaid = useMemo(() => rows?.some((r) => r.paid) ?? false, [rows])
   const effectiveFilter: Filter = filter === 'pool' && !hasPaid ? 'all' : filter

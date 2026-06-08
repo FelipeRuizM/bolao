@@ -10,8 +10,9 @@ import {
   YAxis,
 } from 'recharts'
 import { db } from '@/firebase'
+import { useUsers } from '@/hooks/useUsers'
 import { useT } from '@/i18n'
-import type { Match, UserProfile } from '@/types'
+import type { Match } from '@/types'
 
 const COLORS = [
   '#facc15', // amber-400 (brand)
@@ -34,19 +35,14 @@ interface Props {
 
 export function RankOverTime({ highlightUid, filterUids }: Props) {
   const t = useT()
+  // Pre-filtered to the current user's group, so only same-group lines are plotted.
+  const users = useUsers()
   const [history, setHistory] = useState<Record<string, Record<string, number>> | null>(null)
-  const [users, setUsers] = useState<Record<string, UserProfile> | null>(null)
   const [matches, setMatches] = useState<Record<string, Match> | null>(null)
 
   useEffect(() => {
     return onValue(ref(db, 'scoreHistory'), (snap) => {
       setHistory((snap.val() ?? {}) as Record<string, Record<string, number>>)
-    })
-  }, [])
-
-  useEffect(() => {
-    return onValue(ref(db, 'users'), (snap) => {
-      setUsers((snap.val() ?? {}) as Record<string, UserProfile>)
     })
   }, [])
 
@@ -57,7 +53,7 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
   }, [])
 
   const { chartData, lines } = useMemo(() => {
-    if (!history || !users || !matches) return { chartData: [], lines: [] }
+    if (!history || !matches) return { chartData: [], lines: [] }
 
     // Keys are `{kickoffAt}_{matchId}` — kickoffAt is a fixed-width ms
     // timestamp, so a lexical sort matches chronological order.
@@ -101,7 +97,7 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
     return { chartData: data, lines: lineDefs }
   }, [history, users, matches, filterUids, t])
 
-  if (history === null || users === null || matches === null) return null
+  if (history === null || matches === null) return null
   if (chartData.length === 0) return null
 
   return (

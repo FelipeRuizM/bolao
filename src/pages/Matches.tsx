@@ -151,7 +151,11 @@ export function Matches() {
                 key={m.id}
                 match={m}
                 myPrediction={myPredictions[m.id]}
-                pickedCount={pickStatus ? Object.keys(pickStatus[m.id] ?? {}).length : undefined}
+                pickedCount={
+                  pickStatus
+                    ? Object.keys(pickStatus[m.id] ?? {}).filter((uid) => users[uid]).length
+                    : undefined
+                }
                 totalPlayers={totalPlayers}
               />
             ))}

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
-import { setUserPaid } from '@/api/admin'
+import { setUserGroup, setUserPaid } from '@/api/admin'
+import { DEFAULT_GROUP } from '@/hooks/useUsers'
 import { useT } from '@/i18n'
 import { AdminCard, StatusLine } from './AdminCard'
 import type { UserProfile } from '@/types'
@@ -11,6 +12,7 @@ interface Row {
   displayName: string
   email: string
   paid: boolean
+  group: string
 }
 
 export function PlayersSection() {
@@ -27,6 +29,7 @@ export function PlayersSection() {
         displayName: p.displayName ?? p.email ?? uid.slice(0, 6),
         email: p.email ?? '',
         paid: !!p.paid,
+        group: p.group?.trim() || '',
       }))
       list.sort((a, b) => a.displayName.localeCompare(b.displayName))
       setRows(list)
@@ -38,6 +41,18 @@ export function PlayersSection() {
     setErr(null)
     try {
       await setUserPaid(uid, paid)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSavingUid(null)
+    }
+  }
+
+  async function saveGroup(uid: string, group: string) {
+    setSavingUid(uid)
+    setErr(null)
+    try {
+      await setUserGroup(uid, group)
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e))
     } finally {
@@ -68,6 +83,20 @@ export function PlayersSection() {
                 <div className="truncate text-xs text-slate-500">{row.email}</div>
               )}
             </div>
+            <input
+              type="text"
+              defaultValue={row.group}
+              disabled={savingUid === row.uid}
+              placeholder={DEFAULT_GROUP}
+              aria-label={t('admin.groupLabel')}
+              onBlur={(e) => {
+                if (e.target.value.trim() !== row.group) saveGroup(row.uid, e.target.value)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur()
+              }}
+              className="w-20 shrink-0 rounded bg-slate-800 border border-slate-700 px-2 py-1 text-xs focus:outline-none focus:border-brand-500 disabled:opacity-50"
+            />
             <label className="flex items-center gap-2 cursor-pointer shrink-0">
               <input
                 type="checkbox"

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useMatches } from '@/hooks/useMatches'
 import { useBigGames } from '@/hooks/useMetaConfig'
 import { useMyPredictions } from '@/hooks/usePrediction'
+import { useUsers } from '@/hooks/useUsers'
 import { useSync } from '@/hooks/useSync'
 import { MatchBreakdownCard } from '@/components/MatchBreakdownCard'
 import { useT } from '@/i18n'
@@ -24,6 +25,7 @@ export function Me() {
   useSync()
   const { matches } = useMatches()
   const myPredictions = useMyPredictions(user?.uid)
+  const users = useUsers()
   const [allScores, setAllScores] = useState<Record<string, UserScore> | null>(null)
 
   useEffect(() => {
@@ -82,12 +84,15 @@ export function Me() {
 
   const vsAvg = useMemo(() => {
     if (!user || !allScores) return null
-    const totals = Object.values(allScores).map((s) => s?.total ?? 0)
-    if (totals.length === 0) return null
+    // Average over the current user's group only, so the comparison never leaks
+    // the other friend group's performance.
+    const groupUids = Object.keys(users)
+    if (groupUids.length === 0) return null
+    const totals = groupUids.map((uid) => allScores[uid]?.total ?? 0)
     const avg = totals.reduce((a, b) => a + b, 0) / totals.length
     const mine = allScores[user.uid]?.total ?? summary.total
     return Math.round(mine - avg)
-  }, [allScores, user, summary.total])
+  }, [allScores, users, user, summary.total])
 
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-5">
