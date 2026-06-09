@@ -12,10 +12,11 @@ import { MatchCard } from '@/components/MatchCard'
 import { brDayKey } from '@/utils/datetime'
 import type { Match } from '@/types'
 
-type Filter = 'open' | 'future' | 'previous' | 'all'
+type Filter = 'topick' | 'open' | 'future' | 'previous' | 'all'
 
-const FILTERS: Filter[] = ['open', 'future', 'previous', 'all']
+const FILTERS: Filter[] = ['topick', 'open', 'future', 'previous', 'all']
 const FILTER_LABEL: Record<Filter, string> = {
+  topick: 'matches.filterToPick',
   open: 'matches.filterOpen',
   future: 'matches.filterFuture',
   previous: 'matches.filterPrevious',
@@ -38,7 +39,7 @@ export function Matches() {
   const { locale } = useLocale()
   const t = useT()
   useSync()
-  const [filter, setFilter] = useState<Filter>('open')
+  const [filter, setFilter] = useState<Filter>('topick')
 
   const totalPlayers = Object.keys(users).length
 
@@ -46,6 +47,9 @@ export function Matches() {
     if (!matches) return null
     const now = Date.now()
     switch (filter) {
+      case 'topick':
+        // Pickable right now AND the user still hasn't entered a prediction.
+        return matches.filter((m) => isPredictionOpen(m.kickoffAt, now) && !myPredictions[m.id])
       case 'all':
         return matches
       case 'previous':
@@ -60,7 +64,7 @@ export function Matches() {
           (m) => m.status !== 'FT' && (m.status === 'LIVE' || isPredictionOpen(m.kickoffAt, now)),
         )
     }
-  }, [matches, filter])
+  }, [matches, filter, myPredictions])
 
   // How many currently-pickable open games the user still hasn't predicted.
   // Live games are excluded (picks are locked once a match kicks off).
@@ -138,7 +142,9 @@ export function Matches() {
               ? 'matches.noPrevious'
               : filter === 'future'
                 ? 'matches.noFuture'
-                : 'matches.noOpen',
+                : filter === 'topick'
+                  ? 'matches.noToPick'
+                  : 'matches.noOpen',
           )}
         </div>
       )}
