@@ -137,7 +137,7 @@ const pt: typeof en = {
     brazilRow: 'Qualquer jogo com o Brasil',
     brazilDesc: 'Empilha em cima do multiplicador da fase. Ex.: Brasil na final = fase 6× × Brasil 3× = 18× em cada nível de pontuação base.',
     bonusHeading: 'Palpites bônus',
-    bonusDesc: 'Dois palpites de torneio que valem pontos extras se acertados. Travam no primeiro jogo.',
+    bonusDesc: 'Cinco palpites de torneio que valem pontos extras se acertados. Travam no primeiro jogo.',
     exampleHeading: 'Exemplo prático',
     exampleScenario: 'Você palpita Brasil 2–1 Argentina na final. Resultado real: Brasil 3–2.',
     exampleStep1: 'Mesmo vencedor e mesmo saldo → nível "saldo de gols": {n} pts base',
@@ -239,6 +239,9 @@ const pt: typeof en = {
     bonusValuesDesc: 'Pontos concedidos por cada palpite bônus se a resposta for correta.',
     bonusWinnerLabel: 'Campeão',
     bonusTopScorerLabel: 'Artilheiro',
+    bonusBestPlayerLabel: 'Melhor Jogador',
+    bonusBestYoungPlayerLabel: 'Melhor Jogador Jovem',
+    bonusBestGoalkeeperLabel: 'Melhor Goleiro',
     bonusAnswersHeading: 'Respostas oficiais (bônus)',
     bonusAnswersDesc:
       'Defina ao final do torneio para conceder os pontos bônus. Deixe em branco para não conceder aquele bônus.',
@@ -304,7 +307,7 @@ const pt: typeof en = {
   bonus: {
     title: 'Palpites Bônus',
     intro:
-      'Dois palpites de torneio que valem pontos extras se você acertar. Travam no jogo de abertura — sem edição depois disso.',
+      'Cinco palpites de torneio que valem pontos extras se você acertar. Travam no jogo de abertura — sem edição depois disso.',
     notInitialized:
       'Os palpites bônus ficam disponíveis assim que o admin importar a tabela (o trava é definido para o início da abertura).',
     locksAt: 'Trava em {when}',
@@ -315,6 +318,15 @@ const pt: typeof en = {
     topScorerLabel: 'Artilheiro (Chuteira de Ouro)',
     topScorerHelp: 'Quem termina como artilheiro? +{n} pts se acertar.',
     topScorerPlaceholder: 'Digite o nome do jogador',
+    bestPlayerLabel: 'Melhor Jogador (Bola de Ouro)',
+    bestPlayerHelp: 'Melhor jogador do torneio? +{n} pts se acertar.',
+    bestPlayerPlaceholder: 'Digite o nome do jogador',
+    bestYoungPlayerLabel: 'Melhor Jogador Jovem',
+    bestYoungPlayerHelp: 'Melhor jogador jovem do torneio? +{n} pts se acertar.',
+    bestYoungPlayerPlaceholder: 'Digite o nome do jogador',
+    bestGoalkeeperLabel: 'Melhor Goleiro (Luva de Ouro)',
+    bestGoalkeeperHelp: 'Melhor goleiro do torneio? +{n} pts se acertar.',
+    bestGoalkeeperPlaceholder: 'Digite o nome do jogador',
     save: 'Salvar palpites bônus',
     saving: 'Salvando…',
     saved: 'Salvo ✓',

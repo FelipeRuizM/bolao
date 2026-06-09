@@ -135,7 +135,7 @@ const en = {
     brazilRow: 'Any match featuring Brazil',
     brazilDesc: 'Stacks on top of the stage multiplier. E.g. Brazil in the final = stage 6× × Brazil 3× = 18× on every base tier.',
     bonusHeading: 'Bonus picks',
-    bonusDesc: 'Two season-long picks worth bonus points if correct. Locks at the opening match.',
+    bonusDesc: 'Five season-long picks worth bonus points if correct. Locks at the opening match.',
     exampleHeading: 'Worked example',
     exampleScenario: 'You predict Brazil 2–1 Argentina in the final. Actual result: Brazil 3–2.',
     exampleStep1: 'Same outcome and goal difference → goal-difference tier: {n} pts base',
@@ -238,6 +238,9 @@ const en = {
       'Points awarded for each bonus pick if the answer is correct.',
     bonusWinnerLabel: 'Tournament Winner',
     bonusTopScorerLabel: 'Top Scorer',
+    bonusBestPlayerLabel: 'Best Player',
+    bonusBestYoungPlayerLabel: 'Best Young Player',
+    bonusBestGoalkeeperLabel: 'Best Goalkeeper',
     bonusAnswersHeading: 'Bonus answers',
     bonusAnswersDesc:
       "Set these once the tournament ends to award bonus points. Leave a field empty if you don't want to award that bonus.",
@@ -303,7 +306,7 @@ const en = {
   bonus: {
     title: 'Bonus Picks',
     intro:
-      'Two season-long picks worth bonus points if you nail them. Locks at the opening match — no edits after that.',
+      'Five season-long picks worth bonus points if you nail them. Locks at the opening match — no edits after that.',
     notInitialized:
       'Bonus picks become available once the admin imports fixtures (the lock time is set to the opening match kickoff).',
     locksAt: 'Locks {when}',
@@ -314,6 +317,15 @@ const en = {
     topScorerLabel: 'Top Scorer (Golden Boot)',
     topScorerHelp: 'Who finishes top scorer of the tournament? +{n} pts if correct.',
     topScorerPlaceholder: 'Type a player name',
+    bestPlayerLabel: 'Best Player (Golden Ball)',
+    bestPlayerHelp: 'Player of the tournament? +{n} pts if correct.',
+    bestPlayerPlaceholder: 'Type a player name',
+    bestYoungPlayerLabel: 'Best Young Player',
+    bestYoungPlayerHelp: 'Best young player of the tournament? +{n} pts if correct.',
+    bestYoungPlayerPlaceholder: 'Type a player name',
+    bestGoalkeeperLabel: 'Best Goalkeeper (Golden Glove)',
+    bestGoalkeeperHelp: 'Best goalkeeper of the tournament? +{n} pts if correct.',
+    bestGoalkeeperPlaceholder: 'Type a player name',
     save: 'Save bonus picks',
     saving: 'Saving…',
     saved: 'Saved ✓',

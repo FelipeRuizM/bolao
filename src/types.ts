@@ -26,6 +26,9 @@ export interface Prediction {
 export interface BonusPick {
   tournamentWinner?: string
   topScorer?: string
+  bestPlayer?: string
+  bestYoungPlayer?: string
+  bestGoalkeeper?: string
   lockedAt?: number
 }
 

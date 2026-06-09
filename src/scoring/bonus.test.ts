@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeBonusPoints, normalizeBonusAnswer } from './index'
+import { computeBonusPoints, normalizeBonusAnswer, DEFAULT_BONUS_VALUES } from './index'
 
 describe('normalizeBonusAnswer', () => {
   it('lowercases, strips diacritics and trims', () => {
@@ -14,12 +14,52 @@ describe('normalizeBonusAnswer', () => {
 })
 
 describe('computeBonusPoints', () => {
-  it('awards both bonuses when both correct', () => {
+  it('awards winner + scorer bonuses when both correct', () => {
     const r = computeBonusPoints(
       { tournamentWinner: 'Brazil', topScorer: 'Vinicius Jr' },
       { tournamentWinner: 'Brazil', topScorer: 'vinicius jr' },
     )
-    expect(r).toEqual({ tournamentWinner: 20, topScorer: 15, total: 35 })
+    expect(r.tournamentWinner).toBe(20)
+    expect(r.topScorer).toBe(15)
+    expect(r.total).toBe(35)
+  })
+
+  it('awards every category when all five are correct', () => {
+    const r = computeBonusPoints(
+      {
+        tournamentWinner: 'Brazil',
+        topScorer: 'Vini',
+        bestPlayer: 'Rodri',
+        bestYoungPlayer: 'Yamal',
+        bestGoalkeeper: 'Alisson',
+      },
+      {
+        tournamentWinner: 'Brazil',
+        topScorer: 'vini',
+        bestPlayer: 'rodri',
+        bestYoungPlayer: 'yamal',
+        bestGoalkeeper: 'alisson',
+      },
+    )
+    expect(r).toEqual({
+      tournamentWinner: 20,
+      topScorer: 15,
+      bestPlayer: 15,
+      bestYoungPlayer: 10,
+      bestGoalkeeper: 10,
+      total: 70,
+    })
+  })
+
+  it('awards only the new categories that match', () => {
+    const r = computeBonusPoints(
+      { bestPlayer: 'Rodri', bestGoalkeeper: 'Alisson' },
+      { bestPlayer: 'rodri', bestYoungPlayer: 'Yamal', bestGoalkeeper: 'Donnarumma' },
+    )
+    expect(r.bestPlayer).toBe(15)
+    expect(r.bestYoungPlayer).toBe(0)
+    expect(r.bestGoalkeeper).toBe(0)
+    expect(r.total).toBe(15)
   })
 
   it('awards none when neither matches', () => {
@@ -39,7 +79,7 @@ describe('computeBonusPoints', () => {
     const r = computeBonusPoints(
       { tournamentWinner: 'Brazil', topScorer: 'Vini' },
       { tournamentWinner: 'Brazil', topScorer: 'vini' },
-      { tournamentWinner: 50, topScorer: 100 },
+      { ...DEFAULT_BONUS_VALUES, tournamentWinner: 50, topScorer: 100 },
     )
     expect(r.total).toBe(150)
   })

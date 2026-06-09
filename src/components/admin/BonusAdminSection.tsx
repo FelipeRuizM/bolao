@@ -82,6 +82,21 @@ export function BonusAdminSection() {
             value={values.topScorer}
             onChange={(v) => setValues((p) => ({ ...p, topScorer: v }))}
           />
+          <NumberField
+            label={t('admin.bonusBestPlayerLabel')}
+            value={values.bestPlayer}
+            onChange={(v) => setValues((p) => ({ ...p, bestPlayer: v }))}
+          />
+          <NumberField
+            label={t('admin.bonusBestYoungPlayerLabel')}
+            value={values.bestYoungPlayer}
+            onChange={(v) => setValues((p) => ({ ...p, bestYoungPlayer: v }))}
+          />
+          <NumberField
+            label={t('admin.bonusBestGoalkeeperLabel')}
+            value={values.bestGoalkeeper}
+            onChange={(v) => setValues((p) => ({ ...p, bestGoalkeeper: v }))}
+          />
         </div>
         <AdminButton
           label={t('admin.saveAndRecompute')}
@@ -111,16 +126,30 @@ export function BonusAdminSection() {
           </select>
         </label>
 
-        <label className="block">
-          <span className="text-xs text-slate-400">{t('admin.bonusTopScorerLabel')}</span>
-          <input
-            type="text"
-            value={answers.topScorer ?? ''}
-            onChange={(e) => setAnswers((p) => ({ ...p, topScorer: e.target.value || undefined }))}
-            placeholder={t('admin.bonusTopScorerPlaceholder')}
-            className="mt-1 w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-base focus:outline-none focus:border-brand-500"
-          />
-        </label>
+        <AnswerField
+          label={t('admin.bonusTopScorerLabel')}
+          value={answers.topScorer}
+          onChange={(v) => setAnswers((p) => ({ ...p, topScorer: v }))}
+          placeholder={t('admin.bonusTopScorerPlaceholder')}
+        />
+        <AnswerField
+          label={t('admin.bonusBestPlayerLabel')}
+          value={answers.bestPlayer}
+          onChange={(v) => setAnswers((p) => ({ ...p, bestPlayer: v }))}
+          placeholder={t('admin.bonusTopScorerPlaceholder')}
+        />
+        <AnswerField
+          label={t('admin.bonusBestYoungPlayerLabel')}
+          value={answers.bestYoungPlayer}
+          onChange={(v) => setAnswers((p) => ({ ...p, bestYoungPlayer: v }))}
+          placeholder={t('admin.bonusTopScorerPlaceholder')}
+        />
+        <AnswerField
+          label={t('admin.bonusBestGoalkeeperLabel')}
+          value={answers.bestGoalkeeper}
+          onChange={(v) => setAnswers((p) => ({ ...p, bestGoalkeeper: v }))}
+          placeholder={t('admin.bonusTopScorerPlaceholder')}
+        />
 
         <AdminButton
           label={t('admin.saveAndRecompute')}
@@ -131,5 +160,30 @@ export function BonusAdminSection() {
         <StatusLine ok={answersOk} err={answersErr} />
       </AdminCard>
     </>
+  )
+}
+
+function AnswerField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  value: string | undefined
+  onChange: (v: string | undefined) => void
+  placeholder: string
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs text-slate-400">{label}</span>
+      <input
+        type="text"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value || undefined)}
+        placeholder={placeholder}
+        className="mt-1 w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-base focus:outline-none focus:border-brand-500"
+      />
+    </label>
   )
 }

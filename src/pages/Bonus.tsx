@@ -13,11 +13,32 @@ import { useT, useLocale, bcp47 } from '@/i18n'
 import { useConfig } from '@/hooks/useConfig'
 import { formatBR } from '@/utils/datetime'
 import {
+  BONUS_KEYS,
   DEFAULT_BONUS_VALUES,
   computeBonusPoints,
   normalizeBonusAnswer,
+  type BonusAnswers,
+  type BonusKey,
   type BonusValues,
 } from '@/scoring'
+import type { BonusPick } from '@/types'
+
+/** Per-category display metadata: an emoji and whether the value is a team or a player name. */
+const FIELD_META: Record<BonusKey, { emoji: string; kind: 'team' | 'player' }> = {
+  tournamentWinner: { emoji: '🏆', kind: 'team' },
+  topScorer: { emoji: '⚽', kind: 'player' },
+  bestPlayer: { emoji: '⭐', kind: 'player' },
+  bestYoungPlayer: { emoji: '🌱', kind: 'player' },
+  bestGoalkeeper: { emoji: '🧤', kind: 'player' },
+}
+
+const EMPTY_PICKS: Record<BonusKey, string> = {
+  tournamentWinner: '',
+  topScorer: '',
+  bestPlayer: '',
+  bestYoungPlayer: '',
+  bestGoalkeeper: '',
+}
 
 function formatDateTime(ms: number, locale: string): string {
   return formatBR(ms, locale, {
@@ -27,6 +48,14 @@ function formatDateTime(ms: number, locale: string): string {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function isCorrect(key: BonusKey, pick: BonusPick | undefined, answers: BonusAnswers): boolean {
+  return (
+    !!answers[key] &&
+    !!pick?.[key] &&
+    normalizeBonusAnswer(pick[key]) === normalizeBonusAnswer(answers[key])
+  )
 }
 
 export function Bonus() {
@@ -43,16 +72,20 @@ export function Bonus() {
   const config = useConfig()
   const bonusValues = config?.bonusValues ?? DEFAULT_BONUS_VALUES
 
-  const [winner, setWinner] = useState('')
-  const [topScorer, setTopScorer] = useState('')
+  const [picks, setPicks] = useState<Record<BonusKey, string>>(EMPTY_PICKS)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState(false)
 
   useEffect(() => {
     if (myPick) {
-      setWinner(myPick.tournamentWinner ?? '')
-      setTopScorer(myPick.topScorer ?? '')
+      setPicks({
+        tournamentWinner: myPick.tournamentWinner ?? '',
+        topScorer: myPick.topScorer ?? '',
+        bestPlayer: myPick.bestPlayer ?? '',
+        bestYoungPlayer: myPick.bestYoungPlayer ?? '',
+        bestGoalkeeper: myPick.bestGoalkeeper ?? '',
+      })
     }
   }, [myPick])
 
@@ -68,13 +101,17 @@ export function Bonus() {
     return Array.from(set).sort()
   }, [matches])
 
+  function setField(key: BonusKey, value: string) {
+    setPicks((prev) => ({ ...prev, [key]: value }))
+  }
+
   async function onSave(e: FormEvent) {
     e.preventDefault()
     if (!user) return
     setBusy(true)
     setError(null)
     try {
-      await submitBonusPicks(user.uid, winner, topScorer, lockAt ?? null)
+      await submitBonusPicks(user.uid, picks, lockAt ?? null)
       setSavedFlash(true)
       setTimeout(() => setSavedFlash(false), 1800)
     } catch (err) {
@@ -88,9 +125,7 @@ export function Bonus() {
     return <div className="p-6 text-slate-400">{t('matchDetail.loading')}</div>
   }
 
-  const winnerPts = bonusValues.tournamentWinner
-  const scorerPts = bonusValues.topScorer
-  const hasAnswers = !!answers.tournamentWinner || !!answers.topScorer
+  const hasAnswers = BONUS_KEYS.some((key) => !!answers[key])
 
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-5">
@@ -110,43 +145,39 @@ export function Bonus() {
 
       {!isLocked && lockAt !== null && (
         <form onSubmit={onSave} className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-4">
-          <label className="block">
-            <span className="text-sm font-semibold">
-              {t('bonus.tournamentWinnerLabel')}
-            </span>
-            <span className="block text-xs text-slate-400 mt-0.5">
-              {t('bonus.tournamentWinnerHelp', { n: winnerPts })}
-            </span>
-            <select
-              value={winner}
-              onChange={(e) => setWinner(e.target.value)}
-              required
-              className="mt-2 w-full rounded bg-slate-800 border border-slate-700 px-3 py-3 text-base focus:outline-none focus:border-brand-500"
-            >
-              <option value="">{t('bonus.tournamentWinnerPlaceholder')}</option>
-              {teams.map((team) => (
-                <option key={team} value={team}>
-                  {t.team(team)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold">{t('bonus.topScorerLabel')}</span>
-            <span className="block text-xs text-slate-400 mt-0.5">
-              {t('bonus.topScorerHelp', { n: scorerPts })}
-            </span>
-            <input
-              type="text"
-              value={topScorer}
-              onChange={(e) => setTopScorer(e.target.value)}
-              required
-              maxLength={80}
-              placeholder={t('bonus.topScorerPlaceholder')}
-              className="mt-2 w-full rounded bg-slate-800 border border-slate-700 px-3 py-3 text-base focus:outline-none focus:border-brand-500"
-            />
-          </label>
+          {BONUS_KEYS.map((key) => (
+            <label key={key} className="block">
+              <span className="text-sm font-semibold">{t(`bonus.${key}Label`)}</span>
+              <span className="block text-xs text-slate-400 mt-0.5">
+                {t(`bonus.${key}Help`, { n: bonusValues[key] })}
+              </span>
+              {FIELD_META[key].kind === 'team' ? (
+                <select
+                  value={picks[key]}
+                  onChange={(e) => setField(key, e.target.value)}
+                  required
+                  className="mt-2 w-full rounded bg-slate-800 border border-slate-700 px-3 py-3 text-base focus:outline-none focus:border-brand-500"
+                >
+                  <option value="">{t('bonus.tournamentWinnerPlaceholder')}</option>
+                  {teams.map((team) => (
+                    <option key={team} value={team}>
+                      {t.team(team)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={picks[key]}
+                  onChange={(e) => setField(key, e.target.value)}
+                  required
+                  maxLength={80}
+                  placeholder={t(`bonus.${key}Placeholder`)}
+                  className="mt-2 w-full rounded bg-slate-800 border border-slate-700 px-3 py-3 text-base focus:outline-none focus:border-brand-500"
+                />
+              )}
+            </label>
+          ))}
 
           <button
             type="submit"
@@ -163,21 +194,22 @@ export function Bonus() {
       {isLocked && (
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
           <h2 className="font-semibold">{t('bonus.yourPicks')}</h2>
-          <Row
-            label={t('bonus.tournamentWinnerLabel')}
-            value={myPick?.tournamentWinner ? t.team(myPick.tournamentWinner) : undefined}
-          />
-          <Row label={t('bonus.topScorerLabel')} value={myPick?.topScorer} />
+          {BONUS_KEYS.map((key) => {
+            const raw = myPick?.[key]
+            const value = raw && FIELD_META[key].kind === 'team' ? t.team(raw) : raw
+            return <Row key={key} label={t(`bonus.${key}Label`)} value={value} />
+          })}
         </section>
       )}
 
       {isLocked && hasAnswers && (
         <section className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-4 space-y-2">
           <h2 className="font-semibold text-emerald-300">{t('bonus.answersHeading')}</h2>
-          {answers.tournamentWinner && (
-            <Row label={t('bonus.answersWinner')} value={t.team(answers.tournamentWinner)} bold />
-          )}
-          {answers.topScorer && <Row label={t('bonus.answersTopScorer')} value={answers.topScorer} bold />}
+          {BONUS_KEYS.filter((key) => !!answers[key]).map((key) => {
+            const raw = answers[key]!
+            const value = FIELD_META[key].kind === 'team' ? t.team(raw) : raw
+            return <Row key={key} label={t(`bonus.${key}Label`)} value={value} bold />
+          })}
         </section>
       )}
 
@@ -218,45 +250,37 @@ function EveryonesBonus({
   bonusValues,
   currentUid,
 }: {
-  allPicks: Record<string, import('@/types').BonusPick> | null
+  allPicks: Record<string, BonusPick> | null
   users: Record<string, import('@/types').UserProfile>
   error: string | null
-  answers: import('@/scoring').BonusAnswers
+  answers: BonusAnswers
   bonusValues: BonusValues
   currentUid: string | undefined
 }) {
   const t = useT()
-  const hasAnswers = !!answers.tournamentWinner || !!answers.topScorer
+  const hasAnswers = BONUS_KEYS.some((key) => !!answers[key])
 
   const rows = useMemo(() => {
-    return Object.keys(users).map((uid) => {
-      const profile = users[uid]
-      const pick = allPicks?.[uid]
-      const winnerOk =
-        hasAnswers &&
-        !!pick?.tournamentWinner &&
-        normalizeBonusAnswer(pick.tournamentWinner) === normalizeBonusAnswer(answers.tournamentWinner)
-      const scorerOk =
-        hasAnswers &&
-        !!pick?.topScorer &&
-        normalizeBonusAnswer(pick.topScorer) === normalizeBonusAnswer(answers.topScorer)
-      const points = pick ? computeBonusPoints(pick, answers, bonusValues).total : 0
-      return {
-        uid,
-        name: displayNameFor(uid, profile),
-        pick,
-        winnerOk,
-        scorerOk,
-        points,
-      }
-    }).sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points
-      const aHas = a.pick ? 0 : 1
-      const bHas = b.pick ? 0 : 1
-      if (aHas !== bHas) return aHas - bHas
-      return a.name.localeCompare(b.name)
-    })
-  }, [users, allPicks, answers, bonusValues, hasAnswers])
+    return Object.keys(users)
+      .map((uid) => {
+        const profile = users[uid]
+        const pick = allPicks?.[uid]
+        const points = pick ? computeBonusPoints(pick, answers, bonusValues).total : 0
+        return {
+          uid,
+          name: displayNameFor(uid, profile),
+          pick,
+          points,
+        }
+      })
+      .sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points
+        const aHas = a.pick ? 0 : 1
+        const bHas = b.pick ? 0 : 1
+        if (aHas !== bHas) return aHas - bHas
+        return a.name.localeCompare(b.name)
+      })
+  }, [users, allPicks, answers, bonusValues])
 
   return (
     <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
@@ -269,7 +293,7 @@ function EveryonesBonus({
         {rows.map((row) => (
           <li
             key={row.uid}
-            className={`py-2.5 space-y-1 ${row.uid === currentUid ? 'bg-slate-800/30 -mx-4 px-4' : ''}`}
+            className={`py-2.5 space-y-1.5 ${row.uid === currentUid ? 'bg-slate-800/30 -mx-4 px-4' : ''}`}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">{row.name}</span>
@@ -280,13 +304,21 @@ function EveryonesBonus({
               )}
             </div>
             {row.pick ? (
-              <div className="flex items-center gap-3 text-xs">
-                <span className={`flex-1 truncate ${row.winnerOk ? 'text-emerald-300 font-semibold' : 'text-slate-300'}`}>
-                  🏆 {row.pick.tournamentWinner ? t.team(row.pick.tournamentWinner) : '—'}
-                </span>
-                <span className={`flex-1 truncate ${row.scorerOk ? 'text-emerald-300 font-semibold' : 'text-slate-300'}`}>
-                  ⚽ {row.pick.topScorer || '—'}
-                </span>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                {BONUS_KEYS.map((key) => {
+                  const raw = row.pick![key]
+                  if (!raw) return null
+                  const value = FIELD_META[key].kind === 'team' ? t.team(raw) : raw
+                  const ok = isCorrect(key, row.pick, answers)
+                  return (
+                    <span
+                      key={key}
+                      className={`truncate ${ok ? 'text-emerald-300 font-semibold' : 'text-slate-300'}`}
+                    >
+                      {FIELD_META[key].emoji} {value}
+                    </span>
+                  )
+                })}
               </div>
             ) : (
               <p className="text-xs text-slate-500 italic">{t('bonus.noBonusPick')}</p>

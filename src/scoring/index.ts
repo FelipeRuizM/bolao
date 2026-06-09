@@ -16,20 +16,29 @@ export const DEFAULT_POINTS: PointValues = {
   outcome: 1,
 }
 
-export interface BonusValues {
-  tournamentWinner: number
-  topScorer: number
-}
+/** The bonus categories, in display order. */
+export const BONUS_KEYS = [
+  'tournamentWinner',
+  'topScorer',
+  'bestPlayer',
+  'bestYoungPlayer',
+  'bestGoalkeeper',
+] as const
+export type BonusKey = (typeof BONUS_KEYS)[number]
+
+export type BonusValues = Record<BonusKey, number>
 
 export const DEFAULT_BONUS_VALUES: BonusValues = {
   tournamentWinner: 20,
   topScorer: 15,
+  bestPlayer: 15,
+  bestYoungPlayer: 10,
+  bestGoalkeeper: 10,
 }
 
-export interface BonusAnswers {
-  tournamentWinner?: string
-  topScorer?: string
-}
+export type BonusAnswers = Partial<Record<BonusKey, string>>
+
+export type BonusBreakdown = Record<BonusKey, number> & { total: number }
 
 export function normalizeBonusAnswer(s: string | undefined | null): string {
   if (!s) return ''
@@ -42,19 +51,19 @@ export function normalizeBonusAnswer(s: string | undefined | null): string {
 }
 
 export function computeBonusPoints(
-  pick: { tournamentWinner?: string; topScorer?: string },
+  pick: Partial<Record<BonusKey, string>>,
   answers: BonusAnswers,
   values: BonusValues = DEFAULT_BONUS_VALUES,
-): { tournamentWinner: number; topScorer: number; total: number } {
-  const winnerOk =
-    !!answers.tournamentWinner &&
-    normalizeBonusAnswer(pick.tournamentWinner) === normalizeBonusAnswer(answers.tournamentWinner)
-  const scorerOk =
-    !!answers.topScorer &&
-    normalizeBonusAnswer(pick.topScorer) === normalizeBonusAnswer(answers.topScorer)
-  const tw = winnerOk ? values.tournamentWinner : 0
-  const ts = scorerOk ? values.topScorer : 0
-  return { tournamentWinner: tw, topScorer: ts, total: tw + ts }
+): BonusBreakdown {
+  const out = { total: 0 } as BonusBreakdown
+  for (const key of BONUS_KEYS) {
+    const ok =
+      !!answers[key] && normalizeBonusAnswer(pick[key]) === normalizeBonusAnswer(answers[key])
+    const pts = ok ? values[key] : 0
+    out[key] = pts
+    out.total += pts
+  }
+  return out
 }
 
 export const DEFAULT_STAGE_MULTIPLIERS: Record<Stage, number> = {

@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useConfig } from '@/hooks/useConfig'
 import { useT } from '@/i18n'
 import {
+  BONUS_KEYS,
   BRAZIL_MULTIPLIER,
   DEFAULT_POINTS,
   DEFAULT_STAGE_MULTIPLIERS,
@@ -101,8 +102,9 @@ export function Points() {
       </Card>
 
       <Card title={t('points.bonusHeading')}>
-        <Row label={t('bonus.tournamentWinnerLabel')} value={`${bv?.tournamentWinner ?? '–'} ${t('points.pts')}`} />
-        <Row label={t('bonus.topScorerLabel')} value={`${bv?.topScorer ?? '–'} ${t('points.pts')}`} />
+        {BONUS_KEYS.map((key) => (
+          <Row key={key} label={t(`bonus.${key}Label`)} value={`${bv?.[key] ?? '–'} ${t('points.pts')}`} />
+        ))}
         <p className="text-xs text-slate-400 mt-3">{t('points.bonusDesc')}</p>
       </Card>
 

@@ -1,6 +1,7 @@
 import { get, ref, set, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { recomputeAllUserScores } from '@/scoring/recompute'
+import { BONUS_KEYS } from '@/scoring'
 import type {
   BigGameConfig,
   BonusAnswers,
@@ -40,11 +41,9 @@ export async function setBonusValues(values: BonusValues): Promise<void> {
 
 export async function setBonusAnswers(answers: BonusAnswers): Promise<void> {
   const cleaned: BonusAnswers = {}
-  if (answers.tournamentWinner?.trim()) {
-    cleaned.tournamentWinner = answers.tournamentWinner.trim()
-  }
-  if (answers.topScorer?.trim()) {
-    cleaned.topScorer = answers.topScorer.trim()
+  for (const key of BONUS_KEYS) {
+    const trimmed = answers[key]?.trim()
+    if (trimmed) cleaned[key] = trimmed
   }
   // RTDB: writing null deletes the key.
   const value = Object.keys(cleaned).length === 0 ? null : cleaned
