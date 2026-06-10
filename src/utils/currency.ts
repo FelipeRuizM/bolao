@@ -11,8 +11,8 @@ export function formatBRL(amount: number): string {
 }
 
 export const PRIZE_SHARES = {
-  first: 0.65,
-  second: 0.25,
+  first: 0.7,
+  second: 0.2,
   third: 0.1,
 } as const
 
