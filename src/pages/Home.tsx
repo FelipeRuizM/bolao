@@ -18,6 +18,7 @@ interface LeaderboardRow {
   displayName: string
   total: number
   paid: boolean
+  isAdmin: boolean
 }
 
 type Filter = 'all' | 'pool'
@@ -46,6 +47,7 @@ export function Home() {
       displayName: profile.displayName ?? profile.email ?? uid.slice(0, 6),
       total: scores[uid]?.total ?? 0,
       paid: !!profile.paid,
+      isAdmin: profile.role === 'admin',
     }))
     list.sort((a, b) => b.total - a.total)
     return list
@@ -64,9 +66,13 @@ export function Home() {
     return rows.filter((r) => r.paid).map((r) => r.uid)
   }, [rows, effectiveFilter])
 
-  const paidCount = useMemo(() => rows?.filter((r) => r.paid).length ?? 0, [rows])
-  const showPrize = paidCount > 0 && prizePerUser > 0
-  const prizeTotal = paidCount * prizePerUser
+  // Admins play (and appear in the paid pool) but don't contribute to the prize.
+  const payingCount = useMemo(
+    () => rows?.filter((r) => r.paid && !r.isAdmin).length ?? 0,
+    [rows],
+  )
+  const showPrize = payingCount > 0 && prizePerUser > 0
+  const prizeTotal = payingCount * prizePerUser
 
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-4">
@@ -112,7 +118,7 @@ export function Home() {
 
       {showPrize && (
         <div
-          key={`${paidCount}-${prizePerUser}`}
+          key={`${payingCount}-${prizePerUser}`}
           className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/20 via-brand-500/10 to-transparent border border-brand-500/30 px-4 py-3 sm:px-5 sm:py-4 space-y-3 animate-fade-up"
         >
           <div className="absolute -top-8 -right-6 w-32 h-32 bg-brand-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -127,7 +133,7 @@ export function Home() {
             </div>
             <div className="text-right shrink-0">
               <div className="text-[10px] sm:text-xs text-slate-400 tabular-nums">
-                {t('home.prizePoolBreakdown', { count: paidCount, amount: formatBRL(prizePerUser) })}
+                {t('home.prizePoolBreakdown', { count: payingCount, amount: formatBRL(prizePerUser) })}
               </div>
             </div>
           </div>
