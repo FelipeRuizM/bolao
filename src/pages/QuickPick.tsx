@@ -24,6 +24,14 @@ const COMMON_SCORES: ReadonlyArray<readonly [number, number]> = [
 
 const AUTOSAVE_MS = 700
 
+type QuickFilter = 'topick' | 'all'
+
+const QUICK_FILTERS: QuickFilter[] = ['topick', 'all']
+const QUICK_FILTER_LABEL: Record<QuickFilter, string> = {
+  topick: 'quickPick.filterToPick',
+  all: 'quickPick.filterAll',
+}
+
 function formatDateHeader(isoDate: string, locale: string): string {
   const d = new Date(`${isoDate}T12:00:00`)
   return d.toLocaleDateString(locale, { weekday: 'long', month: 'short', day: 'numeric' })
@@ -37,6 +45,8 @@ export function QuickPick() {
   const t = useT()
   useSync()
 
+  const [filter, setFilter] = useState<QuickFilter>('topick')
+
   const openMatches = useMemo(() => {
     if (!matches) return null
     const now = Date.now()
@@ -45,12 +55,19 @@ export function QuickPick() {
       .sort((a, b) => a.kickoffAt - b.kickoffAt || a.id.localeCompare(b.id))
   }, [matches])
 
-  const grouped = useMemo(() => {
+  // "To pick" burns down as picks save: once a prediction lands, its row
+  // drops from the list, leaving only matches that still need attention.
+  const visibleMatches = useMemo(() => {
     if (!openMatches) return null
+    return filter === 'topick' ? openMatches.filter((m) => !myPredictions[m.id]) : openMatches
+  }, [openMatches, filter, myPredictions])
+
+  const grouped = useMemo(() => {
+    if (!visibleMatches) return null
     const groups: Record<string, Match[]> = {}
-    for (const m of openMatches) (groups[brDayKey(m.kickoffAt)] ??= []).push(m)
+    for (const m of visibleMatches) (groups[brDayKey(m.kickoffAt)] ??= []).push(m)
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
-  }, [openMatches])
+  }, [visibleMatches])
 
   return (
     <div className="max-w-2xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-5">
@@ -64,11 +81,34 @@ export function QuickPick() {
         <p className="text-xs text-slate-500">{t('quickPick.hint')}</p>
       </header>
 
+      {openMatches !== null && openMatches.length > 0 && (
+        <div className="flex rounded-lg bg-slate-800/60 border border-slate-700 p-0.5 text-xs font-medium">
+          {QUICK_FILTERS.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`flex-1 px-2 py-1.5 rounded-md text-center transition-colors ${
+                filter === f ? 'bg-slate-700 text-slate-100' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t(QUICK_FILTER_LABEL[f])}
+            </button>
+          ))}
+        </div>
+      )}
+
       {openMatches === null && <p className="text-slate-400 px-1">{t('matchDetail.loading')}</p>}
 
       {openMatches !== null && openMatches.length === 0 && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">
           {t('quickPick.empty')}
+        </div>
+      )}
+
+      {visibleMatches !== null && visibleMatches.length === 0 && openMatches !== null && openMatches.length > 0 && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">
+          {t('quickPick.allPicked')}
         </div>
       )}
 
