@@ -1,6 +1,15 @@
 /**
- * Nightly cron — runs at 00:00 BRT (= 03:00 UTC).
+ * Score sync — two modes, selected by the SYNC_MODE env var:
  *
+ *   live (cron every 10 min): exits immediately unless a game is in progress
+ *   (status LIVE, or SCHEDULED with kickoff in the past). When one is, syncs
+ *   TheSportsDB and — only if a match actually changed — recomputes scores,
+ *   so the leaderboard updates minutes after each final whistle.
+ *
+ *   full (nightly 00:00 BRT cron + manual dispatch): unconditional sync,
+ *   recompute and history rebuild; reconciles anything live mode missed.
+ *
+ * Pipeline:
  *   1. Fetch latest TheSportsDB events for the World Cup.
  *   2. Apply any new statuses/scores to /matches.
  *   3. Recompute every player's total in /scores.
@@ -25,21 +34,34 @@ import type { BonusPick, Match, Prediction } from '../src/types'
 import { initAdmin } from './_firebase-admin'
 
 async function main(): Promise<void> {
+  const mode = process.env.SYNC_MODE === 'live' ? 'live' : 'full'
   const db = initAdmin()
 
-  console.log('Fetching events from TheSportsDB…')
-  const events = await fetchSeasonEvents()
+  const matchesSnap = await db.ref('matches').get()
+  const matches = (matchesSnap.val() ?? {}) as Record<string, Match>
 
-  console.log('Reading current state from Firebase…')
-  const [matchesSnap, predsSnap, configSnap, usersSnap, bonusPicksSnap] = await Promise.all([
-    db.ref('matches').get(),
+  if (mode === 'live') {
+    // A game counts as in progress until our own DB says FT — a SCHEDULED
+    // match past kickoff is either live or missed, so keep polling either way.
+    const now = Date.now()
+    const inProgress = Object.values(matches).filter(
+      (m) => m.status === 'LIVE' || (m.status === 'SCHEDULED' && m.kickoffAt <= now),
+    )
+    if (inProgress.length === 0) {
+      console.log('Live mode: no game in progress, nothing to do.')
+      return
+    }
+    console.log(`Live mode: ${inProgress.length} game(s) in progress.`)
+  }
+
+  console.log('Fetching events from TheSportsDB…')
+  const [events, predsSnap, configSnap, usersSnap, bonusPicksSnap] = await Promise.all([
+    fetchSeasonEvents(),
     db.ref('predictions').get(),
     db.ref('meta/config').get(),
     db.ref('users').get(),
     db.ref('bonusPicks').get(),
   ])
-
-  const matches = (matchesSnap.val() ?? {}) as Record<string, Match>
   const predictions = (predsSnap.val() ?? {}) as Record<string, Record<string, Prediction>>
   const config = (configSnap.val() ?? {}) as {
     pointValues?: PointValues
@@ -70,6 +92,11 @@ async function main(): Promise<void> {
     }
   } else {
     console.log('No match updates.')
+  }
+
+  if (mode === 'live' && changed === 0) {
+    console.log('Live mode: no score/status changes — skipping recompute.')
+    return
   }
 
   console.log('Recomputing scores…')

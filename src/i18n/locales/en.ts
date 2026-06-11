@@ -45,6 +45,8 @@ const en = {
     prizeFirst: '1st',
     prizeSecond: '2nd',
     prizeThird: '3rd',
+    liveNow: 'Live now',
+    upNext: 'Up next',
   },
   matches: {
     title: 'Matches',
@@ -235,6 +237,13 @@ const en = {
     pointsLoserScore: "Loser team's score correct",
     pointsOutcome: 'Correct outcome only',
     saveAndRecompute: 'Save & recompute',
+    bonusLockHeading: 'Bonus picks lock',
+    bonusLockDesc:
+      "Bonus picks stay editable until this moment. Set it to a future time to reopen everyone's picks.",
+    bonusLockLabel: 'Locks at (Brasília time)',
+    bonusLockSave: 'Save lock time',
+    bonusLockSaved: 'Lock time saved.',
+    bonusLockInvalid: 'Enter a valid date and time.',
     bonusValuesHeading: 'Bonus point values',
     bonusValuesDesc:
       'Points awarded for each bonus pick if the answer is correct.',

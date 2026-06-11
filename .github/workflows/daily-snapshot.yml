@@ -1,8 +1,12 @@
-name: Daily snapshot
+name: Score sync
 
 on:
   schedule:
-    # 03:00 UTC every day = 00:00 BRT (Brazil is UTC-3, no DST since 2019).
+    # Live mode, every 10 minutes: the script exits immediately unless a game
+    # is in progress, so results land minutes after the final whistle.
+    - cron: '*/10 * * * *'
+    # Full mode at 03:00 UTC every day = 00:00 BRT (Brazil is UTC-3, no DST
+    # since 2019): unconditional sync + recompute, reconciles anything missed.
     - cron: '0 3 * * *'
   workflow_dispatch:
 
@@ -16,6 +20,7 @@ concurrency:
 jobs:
   snapshot:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
 
@@ -27,8 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run daily snapshot
+      - name: Run snapshot
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_DATABASE_URL: ${{ secrets.VITE_FIREBASE_DATABASE_URL }}
+          # The 10-minute schedule runs in live mode; the nightly schedule and
+          # manual dispatches run a full sync.
+          SYNC_MODE: ${{ github.event.schedule == '*/10 * * * *' && 'live' || 'full' }}
         run: npx tsx scripts/daily-snapshot.ts

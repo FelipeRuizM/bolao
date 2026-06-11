@@ -5,9 +5,12 @@ import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import { useUsers } from '@/hooks/useUsers'
+import { useMatches } from '@/hooks/useMatches'
+import { useMyPredictions } from '@/hooks/usePrediction'
 import { usePrizePerUser } from '@/hooks/useMetaConfig'
 import { useSync } from '@/hooks/useSync'
 import { useT } from '@/i18n'
+import { MatchCard } from '@/components/MatchCard'
 import { RankOverTime } from '@/components/RankOverTime'
 import { PointsFeed } from '@/components/PointsFeed'
 import { PRIZE_SHARES, formatBRL, splitPrize } from '@/utils/currency'
@@ -30,8 +33,21 @@ export function Home() {
   // Users come pre-filtered to the current user's friend group, so the whole
   // leaderboard (and the prize/chart derived from it) stays group-scoped.
   const users = useUsers()
+  const { matches } = useMatches()
+  const myPredictions = useMyPredictions(user?.uid)
   const [scores, setScores] = useState<Record<string, UserScore> | null>(null)
   const [filter, setFilter] = useState<Filter>('pool')
+
+  // Featured match: the earliest live game, else the next one up. A SCHEDULED
+  // match past kickoff sorts first, which is right — it's probably live.
+  const featured = useMemo(() => {
+    if (!matches) return null
+    return (
+      matches.find((m) => m.status === 'LIVE') ??
+      matches.find((m) => m.status === 'SCHEDULED') ??
+      null
+    )
+  }, [matches])
 
   useEffect(() => {
     return onValue(ref(db, 'scores'), (snap) => {
@@ -109,6 +125,15 @@ export function Home() {
           </div>
         )}
       </div>
+
+      {featured && (
+        <section className="space-y-2 animate-fade-up">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
+            {featured.status === 'LIVE' ? t('home.liveNow') : t('home.upNext')}
+          </h2>
+          <MatchCard match={featured} myPrediction={myPredictions[featured.id]} />
+        </section>
+      )}
 
       {showPrize && (
         <div

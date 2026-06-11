@@ -47,6 +47,8 @@ const pt: typeof en = {
     prizeFirst: '1º',
     prizeSecond: '2º',
     prizeThird: '3º',
+    liveNow: 'Ao vivo',
+    upNext: 'Próximo jogo',
   },
   matches: {
     title: 'Jogos',
@@ -237,6 +239,13 @@ const pt: typeof en = {
     pointsLoserScore: 'Gols do perdedor corretos',
     pointsOutcome: 'Só acertou o vencedor',
     saveAndRecompute: 'Salvar & recalcular',
+    bonusLockHeading: 'Trava dos palpites bônus',
+    bonusLockDesc:
+      'Os palpites bônus podem ser editados até este momento. Coloque uma data futura para reabrir os palpites de todos.',
+    bonusLockLabel: 'Trava em (horário de Brasília)',
+    bonusLockSave: 'Salvar trava',
+    bonusLockSaved: 'Trava salva.',
+    bonusLockInvalid: 'Informe uma data e hora válidas.',
     bonusValuesHeading: 'Pontuação dos bônus',
     bonusValuesDesc: 'Pontos concedidos por cada palpite bônus se a resposta for correta.',
     bonusWinnerLabel: 'Campeão',

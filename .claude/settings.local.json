@@ -4,7 +4,18 @@
       "Bash(npm install *)",
       "Bash(npm test *)",
       "Bash(npm run *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(winget --version)",
+      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node --version; npm --version)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd \"c:\\\\Projects\\\\world-cup-pool\"; npm install)",
+      "PowerShell(gh repo view --json visibility,nameWithOwner)",
+      "PowerShell(git check-ignore -v serviceAccount.json service-account.json firebase-service-account.json 2>$null)",
+      "PowerShell(\\(Invoke-RestMethod -Uri \"https://api.github.com/repos/FelipeRuizM/bolao\" -ErrorAction Stop\\) | Select-Object full_name, visibility, private)",
+      "PowerShell(npx eslint src/pages/Home.tsx src/components/admin/BonusAdminSection.tsx src/i18n/locales/en.ts src/i18n/locales/pt.ts scripts/daily-snapshot.ts)",
+      "PowerShell(git show HEAD:src/components/admin/BonusAdminSection.tsx | Out-File -Encoding utf8 $env:TEMP\\\\BonusAdminSection.orig.tsx; npx eslint --no-ignore --stdin --stdin-filename src/components/admin/BonusAdminSection.tsx \\(Get-Content $env:TEMP\\\\BonusAdminSection.orig.tsx -Raw\\))"
     ]
   }
 }

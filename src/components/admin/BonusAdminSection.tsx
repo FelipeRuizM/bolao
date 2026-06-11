@@ -1,10 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
-import { setBonusAnswers, setBonusValues } from '@/api/admin'
+import { setBonusAnswers, setBonusValues, setLockBonusAt } from '@/api/admin'
 import { useConfig } from '@/hooks/useConfig'
 import { useMatches } from '@/hooks/useMatches'
 import { DEFAULT_BONUS_VALUES, type BonusAnswers, type BonusValues } from '@/scoring'
 import { useT } from '@/i18n'
+import { BR_TZ, brDayKey } from '@/utils/datetime'
 import { AdminButton, AdminCard, NumberField, StatusLine } from './AdminCard'
+
+/** lockBonusAt (epoch ms) → datetime-local value, rendered in Brazil time. */
+function toLockInput(ms: number): string {
+  const time = new Date(ms).toLocaleTimeString('en-GB', {
+    timeZone: BR_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  return `${brDayKey(ms)}T${time}`
+}
 
 export function BonusAdminSection() {
   const t = useT()
@@ -21,10 +32,16 @@ export function BonusAdminSection() {
   const [answersOk, setAnswersOk] = useState<string | null>(null)
   const [answersErr, setAnswersErr] = useState<string | null>(null)
 
+  const [lockInput, setLockInput] = useState('')
+  const [lockBusy, setLockBusy] = useState(false)
+  const [lockOk, setLockOk] = useState<string | null>(null)
+  const [lockErr, setLockErr] = useState<string | null>(null)
+
   useEffect(() => {
     if (config) {
       setValues(config.bonusValues)
       setAnswers(config.bonusAnswers)
+      if (config.lockBonusAt !== null) setLockInput(toLockInput(config.lockBonusAt))
     }
   }, [config])
 
@@ -68,8 +85,47 @@ export function BonusAdminSection() {
     }
   }
 
+  async function saveLock() {
+    // Brazil has had no DST since 2019, so BRT is a fixed -03:00 offset.
+    const ms = Date.parse(`${lockInput}:00-03:00`)
+    if (Number.isNaN(ms)) {
+      setLockErr(t('admin.bonusLockInvalid'))
+      return
+    }
+    setLockBusy(true)
+    setLockOk(null)
+    setLockErr(null)
+    try {
+      await setLockBonusAt(ms)
+      setLockOk(t('admin.bonusLockSaved'))
+    } catch (e) {
+      setLockErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setLockBusy(false)
+    }
+  }
+
   return (
     <>
+      <AdminCard title={t('admin.bonusLockHeading')} description={t('admin.bonusLockDesc')}>
+        <label className="block">
+          <span className="text-xs text-slate-400">{t('admin.bonusLockLabel')}</span>
+          <input
+            type="datetime-local"
+            value={lockInput}
+            onChange={(e) => setLockInput(e.target.value)}
+            className="mt-1 w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-base focus:outline-none focus:border-brand-500"
+          />
+        </label>
+        <AdminButton
+          label={t('admin.bonusLockSave')}
+          busyLabel={t('admin.saving')}
+          busy={lockBusy}
+          onClick={saveLock}
+        />
+        <StatusLine ok={lockOk} err={lockErr} />
+      </AdminCard>
+
       <AdminCard title={t('admin.bonusValuesHeading')} description={t('admin.bonusValuesDesc')}>
         <div className="space-y-2">
           <NumberField
