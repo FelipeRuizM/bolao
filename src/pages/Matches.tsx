@@ -12,12 +12,12 @@ import { MatchCard } from '@/components/MatchCard'
 import { brDayKey } from '@/utils/datetime'
 import type { Match } from '@/types'
 
-type Filter = 'open' | 'future' | 'previous'
+type Filter = 'open' | 'locked' | 'previous'
 
-const FILTERS: Filter[] = ['open', 'future', 'previous']
+const FILTERS: Filter[] = ['open', 'locked', 'previous']
 const FILTER_LABEL: Record<Filter, string> = {
   open: 'matches.filterOpen',
-  future: 'matches.filterFuture',
+  locked: 'matches.filterLocked',
   previous: 'matches.filterPrevious',
 }
 
@@ -47,7 +47,7 @@ export function Matches() {
     switch (filter) {
       case 'previous':
         return matches.filter((m) => m.status === 'FT')
-      case 'future':
+      case 'locked':
         // Scheduled games still beyond the prediction window (not pickable yet).
         return matches.filter((m) => m.status === 'SCHEDULED' && now < predictionOpensAt(m.kickoffAt))
       case 'open':
@@ -74,8 +74,19 @@ export function Matches() {
       const k = brDayKey(m.kickoffAt)
       ;(groups[k] ??= []).push(m)
     }
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
-  }, [visibleMatches])
+    // Previous games read newest-first (latest played day on top, latest
+    // kickoff first within a day); the other filters stay chronological.
+    const newestFirst = filter === 'previous'
+    const entries = Object.entries(groups).sort(([a], [b]) =>
+      newestFirst ? b.localeCompare(a) : a.localeCompare(b),
+    )
+    if (newestFirst) {
+      for (const [, dayMatches] of entries) {
+        dayMatches.sort((a, b) => b.kickoffAt - a.kickoffAt)
+      }
+    }
+    return entries
+  }, [visibleMatches, filter])
 
   return (
     <div className="max-w-5xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-6">
@@ -106,7 +117,6 @@ export function Matches() {
           to="/quick"
           className="flex items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-4 py-3 text-sm text-brand-200 hover:bg-brand-500/20 transition-colors"
         >
-          <span className="text-lg leading-none" aria-hidden="true">⏰</span>
           <span className="font-medium flex-1">
             {t(openUnpickedCount === 1 ? 'matches.unpickedOne' : 'matches.unpickedMany', {
               count: openUnpickedCount,
@@ -133,8 +143,8 @@ export function Matches() {
           {t(
             filter === 'previous'
               ? 'matches.noPrevious'
-              : filter === 'future'
-                ? 'matches.noFuture'
+              : filter === 'locked'
+                ? 'matches.noLocked'
                 : 'matches.noOpen',
           )}
         </div>

@@ -24,7 +24,9 @@
 import { fetchSeasonEvents } from '../src/api/liveScores'
 import { deriveMatchUpdates } from '../src/api/syncMerge'
 import { computeAllUserScores } from '../src/scoring/computeAll'
+import { normalizeBigGames } from '../src/scoring/index'
 import type {
+  BigGameConfig,
   BonusAnswers,
   BonusValues,
   PointValues,
@@ -68,9 +70,12 @@ async function main(): Promise<void> {
     bonusValues?: BonusValues
     bonusAnswers?: BonusAnswers
     stageMultipliers?: StageMultipliers
+    bigGames?: Record<string, number> | null
+    bigGame?: BigGameConfig | null
   }
   const users = (usersSnap.val() ?? {}) as Record<string, unknown>
   const bonusPicks = (bonusPicksSnap.val() ?? {}) as Record<string, BonusPick>
+  const bigGames = normalizeBigGames(config.bigGames, config.bigGame)
 
   console.log(
     `Merging ${events.length} events against ${Object.keys(matches).length} matches…`,
@@ -109,6 +114,7 @@ async function main(): Promise<void> {
     bonusValues: config.bonusValues,
     bonusAnswers: config.bonusAnswers,
     stageMultipliers: config.stageMultipliers,
+    bigGames,
   })
 
   const scoreWrites: Record<string, unknown> = {}
@@ -146,6 +152,8 @@ async function main(): Promise<void> {
       pointValues: config.pointValues,
       bonusValues: config.bonusValues,
       bonusAnswers: config.bonusAnswers,
+      stageMultipliers: config.stageMultipliers,
+      bigGames,
     })
     const key = `${m.kickoffAt}_${m.id}`
     for (const [uid, score] of Object.entries(snapshot)) {

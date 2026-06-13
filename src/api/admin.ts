@@ -58,10 +58,6 @@ export async function setAllowedEmails(emails: string[]): Promise<void> {
   await set(ref(db, 'meta/config/allowedEmails'), unique)
 }
 
-export async function setUserPaid(uid: string, paid: boolean): Promise<void> {
-  await set(ref(db, `users/${uid}/paid`), paid)
-}
-
 /**
  * Persist the email→group pre-assignment map (used to stamp a new member's
  * group on first login). Stored as a list of `{ email, group }` because emails

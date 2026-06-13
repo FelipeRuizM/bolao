@@ -202,7 +202,6 @@ async function main(): Promise<void> {
       displayName: p.displayName,
       role: 'player',
       email: `${p.uid}@demo.local`,
-      paid: p.paid,
     }
     updates[`users/${p.uid}`] = profile
 

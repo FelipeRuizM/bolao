@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
-import { setUserGroup, setUserPaid } from '@/api/admin'
+import { setUserGroup } from '@/api/admin'
 import { DEFAULT_GROUP } from '@/hooks/useUsers'
 import { useT } from '@/i18n'
 import { AdminCard, StatusLine } from './AdminCard'
@@ -11,7 +11,6 @@ interface Row {
   uid: string
   displayName: string
   email: string
-  paid: boolean
   group: string
 }
 
@@ -28,25 +27,12 @@ export function PlayersSection() {
         uid,
         displayName: p.displayName ?? p.email ?? uid.slice(0, 6),
         email: p.email ?? '',
-        paid: !!p.paid,
         group: p.group?.trim() || '',
       }))
       list.sort((a, b) => a.displayName.localeCompare(b.displayName))
       setRows(list)
     })
   }, [])
-
-  async function toggle(uid: string, paid: boolean) {
-    setSavingUid(uid)
-    setErr(null)
-    try {
-      await setUserPaid(uid, paid)
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e))
-    } finally {
-      setSavingUid(null)
-    }
-  }
 
   async function saveGroup(uid: string, group: string) {
     setSavingUid(uid)
@@ -97,16 +83,6 @@ export function PlayersSection() {
               }}
               className="w-20 shrink-0 rounded bg-slate-800 border border-slate-700 px-2 py-1 text-xs focus:outline-none focus:border-brand-500 disabled:opacity-50"
             />
-            <label className="flex items-center gap-2 cursor-pointer shrink-0">
-              <input
-                type="checkbox"
-                checked={row.paid}
-                disabled={savingUid === row.uid}
-                onChange={(e) => toggle(row.uid, e.target.checked)}
-                className="w-4 h-4 accent-brand-500"
-              />
-              <span className="text-xs text-slate-300">{t('admin.paidLabel')}</span>
-            </label>
           </li>
         ))}
       </ul>

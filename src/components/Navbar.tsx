@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { Menu, User, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useT } from '@/i18n'
@@ -23,14 +23,18 @@ export function Navbar() {
     <nav className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/en/1/17/2026_FIFA_World_Cup_emblem.svg" 
-              alt="World Cup Logo" 
+          <Link
+            to="/"
+            aria-label={t('nav.leaderboard')}
+            className="flex items-center gap-2 rounded-lg transition-opacity hover:opacity-80"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/en/1/17/2026_FIFA_World_Cup_emblem.svg"
+              alt="World Cup Logo"
               className="w-6 h-8 sm:w-8 sm:h-10 object-contain drop-shadow-lg"
             />
             <span className="font-extrabold text-white text-xl sm:text-2xl tracking-widest">{t('brand')}</span>
-          </div>
+          </Link>
           
           {/* Desktop Nav */}
           <div className="hidden sm:flex items-center gap-1">

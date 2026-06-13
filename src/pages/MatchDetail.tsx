@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { Lock } from 'lucide-react'
 import { useMatch } from '@/hooks/useMatches'
 import { useMyPrediction } from '@/hooks/usePrediction'
 import { useAuth } from '@/hooks/useAuth'
@@ -33,7 +34,7 @@ function formatKickoff(ms: number, locale: string): string {
   })
 }
 
-import { getTeamEmblemUrl } from '@/utils/emblems'
+import { getTeamCode, getTeamEmblemUrl } from '@/utils/emblems'
 import { formatBR } from '@/utils/datetime'
 
 function MatchHeader({ match, bigGames }: { match: Match; bigGames: BigGames }) {
@@ -63,7 +64,7 @@ function MatchHeader({ match, bigGames }: { match: Match; bigGames: BigGames }) 
           </span>
         )}
       </div>
-      <div className="flex items-center gap-4 text-2xl sm:text-4xl font-bold tracking-tight">
+      <div className="flex items-center justify-center gap-4 text-3xl sm:text-5xl font-bold tracking-tight">
         <div className="flex items-center gap-3">
           <img
             src={getTeamEmblemUrl(match.homeTeam)}
@@ -71,11 +72,15 @@ function MatchHeader({ match, bigGames }: { match: Match; bigGames: BigGames }) 
             className="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-xl"
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
           />
-          <span className="truncate text-slate-100">{t.team(match.homeTeam)}</span>
+          <span className="text-slate-100 tabular-nums" title={t.team(match.homeTeam)}>
+            {getTeamCode(match.homeTeam)}
+          </span>
         </div>
         <span className="text-slate-600 text-xl sm:text-3xl font-semibold bg-slate-800/50 px-4 py-2 rounded-xl">{t('matchCard.vs')}</span>
         <div className="flex items-center gap-3">
-          <span className="truncate text-slate-100">{t.team(match.awayTeam)}</span>
+          <span className="text-slate-100 tabular-nums" title={t.team(match.awayTeam)}>
+            {getTeamCode(match.awayTeam)}
+          </span>
           <img
             src={getTeamEmblemUrl(match.awayTeam)}
             alt={t.team(match.awayTeam)}
@@ -151,28 +156,16 @@ export function MatchDetail() {
     }
   }
 
-  if (!isLocked && !predictionsOpen) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
-        <MatchHeader match={match} bigGames={bigGames} />
-        {isBig && <BigGameBanner multiplier={bigGameMultiplier(match.id, bigGames)} />}
-        <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-2">
-          <h2 className="font-semibold text-slate-200">{t('matchDetail.predictionsNotOpenHeading')}</h2>
-          <p className="text-sm text-slate-400">
-            {t('matchDetail.predictionsOpenAt', { when: formatKickoff(opensAt, bcp47(locale)) })}
-          </p>
-        </section>
-        <PickStatusList matchId={match.id} />
-      </div>
-    )
-  }
-
   if (!isLocked) {
     const stageLabel = match.group ? `${t(STAGE_KEY[match.stage])} · ${match.group}` : t(STAGE_KEY[match.stage])
     const mult = multiplierFor(match.stage, match.homeTeam, match.awayTeam, undefined, {
       matchId: match.id,
       bigGames,
     })
+    // Before its pick window opens, a game shows this very same screen — just
+    // frozen: inputs disabled, a light blur over everything, and a lock card
+    // explaining when picking opens.
+    const previewLocked = !predictionsOpen
     return (
       <form
         onSubmit={onSave}
@@ -203,29 +196,33 @@ export function MatchDetail() {
             src={getTeamEmblemUrl(match.homeTeam)}
             alt=""
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
-            className="absolute -left-32 sm:-left-56 top-1/2 -translate-y-1/2 w-72 h-auto sm:w-[36rem] object-contain pointer-events-none select-none opacity-50"
+            className={`absolute -left-32 sm:-left-56 top-1/2 -translate-y-1/2 w-72 h-auto sm:w-[36rem] object-contain pointer-events-none select-none opacity-50 ${previewLocked ? 'blur-[3px]' : ''}`}
           />
           <img
             src={getTeamEmblemUrl(match.awayTeam)}
             alt=""
             onError={(e) => { e.currentTarget.src = getTeamEmblemUrl('fallback') }}
-            className="absolute -right-32 sm:-right-56 top-1/2 -translate-y-1/2 w-72 h-auto sm:w-[36rem] object-contain pointer-events-none select-none opacity-50"
+            className={`absolute -right-32 sm:-right-56 top-1/2 -translate-y-1/2 w-72 h-auto sm:w-[36rem] object-contain pointer-events-none select-none opacity-50 ${previewLocked ? 'blur-[3px]' : ''}`}
           />
 
-          <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-10 w-full">
+          <div
+            className={`relative z-10 flex flex-col items-center gap-6 sm:gap-10 w-full ${
+              previewLocked ? 'blur-[3px] pointer-events-none select-none' : ''
+            }`}
+          >
             <p className="text-xs sm:text-base font-bold text-slate-200 tracking-wide">
               {formatKickoff(match.kickoffAt, bcp47(locale))}
             </p>
 
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 sm:gap-x-10 gap-y-5 sm:gap-y-7 w-full max-w-lg">
               <div className="flex justify-center">
-                <ScoreStepper value={home} onChange={setHome} disabled={busy} label={t.team(match.homeTeam)} />
+                <ScoreStepper value={home} onChange={setHome} disabled={busy || previewLocked} label={t.team(match.homeTeam)} />
               </div>
               <span className="text-4xl sm:text-6xl font-bold text-slate-400 select-none px-1">
                 x
               </span>
               <div className="flex justify-center">
-                <ScoreStepper value={away} onChange={setAway} disabled={busy} label={t.team(match.awayTeam)} />
+                <ScoreStepper value={away} onChange={setAway} disabled={busy || previewLocked} label={t.team(match.awayTeam)} />
               </div>
 
               <h3 className="text-center text-lg sm:text-2xl font-bold text-slate-100 truncate px-1">
@@ -237,40 +234,59 @@ export function MatchDetail() {
               </h3>
             </div>
 
-            <div className="w-full max-w-lg space-y-2">
-              <button
-                type="submit"
-                disabled={busy}
-                className="w-full rounded-2xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 px-4 py-4 font-bold text-lg min-h-12 transition-all hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:-translate-y-0.5 active:translate-y-0 text-slate-950"
-              >
-                {busy
-                  ? t('matchDetail.saving')
-                  : hasPrediction
-                  ? t('matchDetail.updatePick')
-                  : t('matchDetail.savePick')}
-              </button>
-              {savedFlash && (
-                <p
-                  key={saveCount}
-                  className="text-sm font-semibold text-emerald-400 text-center animate-save-pop"
-                  aria-live="polite"
+            {!previewLocked && (
+              <div className="w-full max-w-lg space-y-2">
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="w-full rounded-2xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 px-4 py-4 font-bold text-lg min-h-12 transition-all hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:-translate-y-0.5 active:translate-y-0 text-slate-950"
                 >
-                  {t('matchDetail.saved')}
-                </p>
-              )}
-              {error && <p className="text-sm text-red-400 break-words">{error}</p>}
-              {hasPrediction && myPrediction?.submittedAt && (
-                <p className="text-xs text-slate-500 text-center">
-                  {t('matchDetail.lastSaved', {
-                    when: formatBR(myPrediction.submittedAt, bcp47(locale), {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    }),
-                  })}
-                </p>
-              )}
-            </div>
+                  {busy
+                    ? t('matchDetail.saving')
+                    : hasPrediction
+                    ? t('matchDetail.updatePick')
+                    : t('matchDetail.savePick')}
+                </button>
+                {savedFlash && (
+                  <p
+                    key={saveCount}
+                    className="text-sm font-semibold text-emerald-400 text-center animate-save-pop"
+                    aria-live="polite"
+                  >
+                    {t('matchDetail.saved')}
+                  </p>
+                )}
+                {error && <p className="text-sm text-red-400 break-words">{error}</p>}
+                {hasPrediction && myPrediction?.submittedAt && (
+                  <p className="text-xs text-slate-500 text-center">
+                    {t('matchDetail.lastSaved', {
+                      when: formatBR(myPrediction.submittedAt, bcp47(locale), {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      }),
+                    })}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* Locked overlay — a crisp lock card floating over the blurred screen */}
+          {previewLocked && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center px-6">
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-700/60 bg-slate-950/70 backdrop-blur-sm px-6 py-5 text-center shadow-xl animate-pop-in">
+                <span className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 border border-slate-700 text-slate-200">
+                  <Lock size={22} />
+                </span>
+                <div>
+                  <p className="font-semibold text-slate-100">{t('matchDetail.gameLocked')}</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {t('matchDetail.predictionsOpenAt', { when: formatKickoff(opensAt, bcp47(locale)) })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="px-4 pb-8 sm:px-6">
           <PickStatusList matchId={match.id} />
