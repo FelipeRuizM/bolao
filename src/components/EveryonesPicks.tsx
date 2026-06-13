@@ -25,7 +25,9 @@ export function EveryonesPicks({ match }: { match: Match }) {
       const profile = users[uid]
       const pred = predictions?.[uid]
       let points: Row['points']
-      if (pred && match.status === 'FT' && match.score) {
+      // Score finished matches, and live ones too — against the current score, so
+      // everyone can see what their pick is worth if the match ended right now.
+      if (pred && match.score && (match.status === 'FT' || match.status === 'LIVE')) {
         const r = computePoints({
           prediction: { home: pred.home, away: pred.away },
           actual: match.score,
@@ -37,12 +39,15 @@ export function EveryonesPicks({ match }: { match: Match }) {
       }
       return { uid, name: displayNameFor(uid, profile), prediction: pred, points }
     })
-    // Sort: highest points first, then users with picks but no points (LIVE),
-    // then users with no pick. Tiebreak by name.
+    // Sort by total predicted goals (most first); users with no pick sink to the
+    // bottom. Tiebreak by name.
     list.sort((a, b) => {
-      const aRank = a.points ? -a.points.total : a.prediction ? 1 : 2
-      const bRank = b.points ? -b.points.total : b.prediction ? 1 : 2
-      if (aRank !== bRank) return aRank - bRank
+      const aHasPick = a.prediction ? 0 : 1
+      const bHasPick = b.prediction ? 0 : 1
+      if (aHasPick !== bHasPick) return aHasPick - bHasPick
+      const aGoals = a.prediction ? a.prediction.home + a.prediction.away : 0
+      const bGoals = b.prediction ? b.prediction.home + b.prediction.away : 0
+      if (aGoals !== bGoals) return bGoals - aGoals
       return a.name.localeCompare(b.name)
     })
     return list
@@ -60,6 +65,10 @@ export function EveryonesPicks({ match }: { match: Match }) {
           </span>
         )}
       </div>
+
+      {match.status === 'LIVE' && match.score && (
+        <p className="text-xs text-slate-500">{t('matchDetail.livePicksHint')}</p>
+      )}
 
       {error && <p className="text-sm text-red-400 break-words">{error}</p>}
       {predictions !== null && rows.length === 0 && (

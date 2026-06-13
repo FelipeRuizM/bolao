@@ -122,6 +122,8 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
               width={36}
             />
             <Tooltip
+              // Highest points at the top of the hover popup, descending.
+              itemSorter={(item) => -Number(item.value ?? 0)}
               contentStyle={{
                 background: '#0f172a',
                 border: '1px solid #334155',

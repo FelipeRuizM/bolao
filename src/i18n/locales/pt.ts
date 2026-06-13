@@ -100,6 +100,7 @@ const pt: typeof en = {
     everyonesPicks: 'Palpites de todos',
     actualResult: 'Resultado',
     matchInProgress: 'Jogo em andamento',
+    livePicksHint: 'Pontos se o jogo terminasse agora.',
     noPicksFromAnyone: 'Ninguém palpitou neste jogo.',
     noPickFromUser: 'sem palpite',
     whoPickedTitle: 'Quem já palpitou',

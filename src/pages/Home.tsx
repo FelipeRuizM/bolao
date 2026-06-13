@@ -153,10 +153,10 @@ export function Home() {
                         <span
                           title={t('home.lastPlaceTitle')}
                           aria-label={t('home.lastPlaceTitle')}
-                          className="shrink-0 inline-flex text-slate-500"
+                          className="shrink-0 inline-flex items-center gap-0.5 text-slate-500"
                         >
                           <Trash2 size={14} />
-                          😂
+                          <span aria-hidden="true">😂</span>
                         </span>
                       )}
                     </span>

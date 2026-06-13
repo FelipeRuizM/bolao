@@ -98,6 +98,7 @@ const en = {
     everyonesPicks: "Everyone's picks",
     actualResult: 'Result',
     matchInProgress: 'Match in progress',
+    livePicksHint: 'Points if the match ended now.',
     noPicksFromAnyone: 'Nobody picked this match.',
     noPickFromUser: 'no pick',
     whoPickedTitle: "Who's picked",
