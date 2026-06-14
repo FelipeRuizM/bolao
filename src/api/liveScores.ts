@@ -22,12 +22,50 @@ interface TSDBResponse {
   events: TSDBEvent[] | null
 }
 
+/** Fetch and parse one TSDB event feed. Tolerant: returns [] on any failure so
+ *  one bad or rate-limited endpoint can't sink the others in the merge below. */
+async function fetchEventFeed(url: string): Promise<TSDBEvent[]> {
+  try {
+    const res = await fetch(url, { cache: 'no-cache' })
+    if (!res.ok) return []
+    const data = (await res.json()) as TSDBResponse
+    return data.events ?? []
+  } catch {
+    return []
+  }
+}
+
+/** YYYY-MM-DD (UTC) for now shifted by `offsetDays`. */
+function utcDay(offsetDays: number): string {
+  return new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+}
+
+/**
+ * Every known World Cup result, plus live in-play games.
+ *
+ * The season feed (eventsseason.php) carries the full schedule and final
+ * scores, but on the free key it's heavily cached and lags reality by hours —
+ * it doesn't surface in-play games, so live scores never update from it alone.
+ * The per-day feed (eventsday.php) is fresh and reports live status, so we
+ * overlay today ±1 day (a UTC window, to span kickoff time zones) on top of the
+ * season feed. Events are merged by idEvent with the fresher day feed winning,
+ * so a game the season feed still lists as scheduled picks up its live score.
+ */
 export async function fetchSeasonEvents(): Promise<TSDBEvent[]> {
-  const url = `${TSDB_BASE}/eventsseason.php?id=${FIFA_WORLD_CUP_LEAGUE_ID}&s=${SEASON}`
-  const res = await fetch(url, { cache: 'no-cache' })
-  if (!res.ok) throw new Error(`TheSportsDB ${res.status}`)
-  const data = (await res.json()) as TSDBResponse
-  return data.events ?? []
+  const seasonUrl = `${TSDB_BASE}/eventsseason.php?id=${FIFA_WORLD_CUP_LEAGUE_ID}&s=${SEASON}`
+  const dayUrls = [-1, 0, 1].map(
+    (d) => `${TSDB_BASE}/eventsday.php?d=${utcDay(d)}&l=${FIFA_WORLD_CUP_LEAGUE_ID}`,
+  )
+
+  const [season, ...days] = await Promise.all([
+    fetchEventFeed(seasonUrl),
+    ...dayUrls.map(fetchEventFeed),
+  ])
+
+  const byId = new Map<string, TSDBEvent>()
+  for (const e of season) byId.set(e.idEvent, e)
+  for (const e of days.flat()) byId.set(e.idEvent, e)
+  return [...byId.values()]
 }
 
 /**
