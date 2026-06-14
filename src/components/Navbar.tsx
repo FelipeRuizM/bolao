@@ -42,7 +42,6 @@ export function Navbar() {
             <NavLink to="/matches" className={linkClass}>{t('nav.matches')}</NavLink>
             <NavLink to="/quick" className={linkClass}>{t('nav.quickPick')}</NavLink>
             <NavLink to="/me" className={linkClass}>{t('nav.myPicks')}</NavLink>
-            <NavLink to="/bonus" className={linkClass}>{t('nav.bonus')}</NavLink>
             {isAdmin && <NavLink to="/admin" className={linkClass}>{t('nav.admin')}</NavLink>}
           </div>
         </div>
@@ -91,7 +90,6 @@ export function Navbar() {
             <NavLink to="/matches" className={linkClass} onClick={closeMenu}>{t('nav.matches')}</NavLink>
             <NavLink to="/quick" className={linkClass} onClick={closeMenu}>{t('nav.quickPick')}</NavLink>
             <NavLink to="/me" className={linkClass} onClick={closeMenu}>{t('nav.myPicks')}</NavLink>
-            <NavLink to="/bonus" className={linkClass} onClick={closeMenu}>{t('nav.bonus')}</NavLink>
             <NavLink to="/profile" className={linkClass} onClick={closeMenu}>{t('nav.profile')}</NavLink>
             {isAdmin && <NavLink to="/admin" className={linkClass} onClick={closeMenu}>{t('nav.admin')}</NavLink>}
             <div className="h-px bg-slate-800 my-2" />

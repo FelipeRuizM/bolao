@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ArrowDown, ArrowUp } from 'lucide-react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
@@ -27,6 +28,7 @@ export function Me() {
   const myPredictions = useMyPredictions(user?.uid)
   const users = useUsers()
   const [allScores, setAllScores] = useState<Record<string, UserScore> | null>(null)
+  const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc')
 
   useEffect(() => {
     return onValue(ref(db, 'scores'), (snap) => {
@@ -58,6 +60,13 @@ export function Me() {
     out.sort((a, b) => b.match.kickoffAt - a.match.kickoffAt)
     return out
   }, [matches, myPredictions, bigGames])
+
+  // Display order is user-controlled; `rows` stays newest-first so the streak
+  // stat (consecutive most-recent scoring picks) is computed correctly below.
+  const displayRows = useMemo(
+    () => (sortDir === 'desc' ? rows : [...rows].reverse()),
+    [rows, sortDir],
+  )
 
   const summary = useMemo(() => {
     let total = 0
@@ -128,8 +137,23 @@ export function Me() {
         </div>
       )}
 
+      {rows.length > 0 && (
+        <div className="flex justify-end px-1">
+          <button
+            type="button"
+            onClick={() => setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))}
+            title={t('me.sortLabel')}
+            aria-label={t('me.sortLabel')}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 bg-slate-800/60 hover:bg-slate-700/60 border border-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+          >
+            {sortDir === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+            <span>{sortDir === 'desc' ? t('me.sortNewest') : t('me.sortOldest')}</span>
+          </button>
+        </div>
+      )}
+
       <div className="space-y-3">
-        {rows.map(({ match, prediction, result }) => (
+        {displayRows.map(({ match, prediction, result }) => (
           <MatchBreakdownCard
             key={match.id}
             match={match}

@@ -10,7 +10,6 @@ import { MatchDetail } from '@/pages/MatchDetail'
 import { QuickPick } from '@/pages/QuickPick'
 import { Me } from '@/pages/Me'
 import { Player } from '@/pages/Player'
-import { Bonus } from '@/pages/Bonus'
 import { Points } from '@/pages/Points'
 import { Profile } from '@/pages/Profile'
 import { Admin } from '@/pages/Admin'
@@ -29,7 +28,6 @@ export default function App() {
             <Route path="/matches/:id" element={<ProtectedRoute><MatchDetail /></ProtectedRoute>} />
             <Route path="/me" element={<ProtectedRoute><Me /></ProtectedRoute>} />
             <Route path="/players/:uid" element={<ProtectedRoute><Player /></ProtectedRoute>} />
-            <Route path="/bonus" element={<ProtectedRoute><Bonus /></ProtectedRoute>} />
             <Route path="/points" element={<ProtectedRoute><Points /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />

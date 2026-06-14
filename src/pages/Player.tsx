@@ -9,6 +9,7 @@ import { usePlayerPredictions } from '@/hooks/usePrediction'
 import { useUsers, displayNameFor } from '@/hooks/useUsers'
 import { useSync } from '@/hooks/useSync'
 import { MatchBreakdownCard, type BreakdownResult } from '@/components/MatchBreakdownCard'
+import { PlayerBonusPicks } from '@/components/PlayerBonusPicks'
 import { useT } from '@/i18n'
 import { computePoints } from '@/scoring'
 import type { Match, Prediction, UserScore } from '@/types'
@@ -130,12 +131,7 @@ export function Player() {
         />
       </div>
 
-      {bonusPts > 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between text-sm">
-          <span className="text-slate-300">{t('player.bonusPoints')}</span>
-          <span className="font-bold text-brand-500 tabular-nums">+{bonusPts}</span>
-        </div>
-      )}
+      {uid && <PlayerBonusPicks uid={uid} bonusPts={bonusPts} />}
 
       {!loading && rows.length === 0 && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">
