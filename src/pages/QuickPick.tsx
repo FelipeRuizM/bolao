@@ -22,7 +22,7 @@ const COMMON_SCORES: ReadonlyArray<readonly [number, number]> = [
   [1, 2],
 ]
 
-const AUTOSAVE_MS = 700
+const AUTOSAVE_MS = 3000
 
 type QuickFilter = 'topick' | 'all'
 
