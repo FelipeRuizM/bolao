@@ -97,7 +97,7 @@ export function Home() {
   const prizeByRank = [prizeSplit.first, prizeSplit.second, prizeSplit.third]
 
   return (
-    <div className="max-w-2xl lg:max-w-4xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-4">
+    <div className="max-w-2xl lg:max-w-5xl mx-auto px-3 py-4 sm:px-4 sm:py-6 space-y-4">
       <div className="flex items-center gap-2 px-1">
         <h1 className="text-2xl font-bold">{t('home.title')}</h1>
         <Link
@@ -124,7 +124,7 @@ export function Home() {
         <p className="text-slate-400">{t('home.noPlayers')}</p>
       )}
       {rows !== null && rows.length > 0 && (
-        <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+        <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
           <ol className="divide-y divide-slate-800 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden">
             {rows.map((row, i) => {
               const medal = MEDALS[i]

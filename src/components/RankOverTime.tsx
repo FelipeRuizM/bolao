@@ -101,11 +101,11 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
   if (chartData.length === 0) return null
 
   return (
-    <section className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4">
+    <section className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 lg:h-full lg:flex lg:flex-col">
       <h2 className="text-sm sm:text-base font-bold text-slate-200 mb-3 px-1">
         {t('home.pointsOverTime')}
       </h2>
-      <div className="h-64 sm:h-80 -mx-2">
+      <div className="h-64 sm:h-80 lg:h-auto lg:flex-1 lg:min-h-0 -mx-2">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 12, left: -10, bottom: 0 }}>
             <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
