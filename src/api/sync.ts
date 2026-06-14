@@ -1,6 +1,7 @@
 import { get, ref, runTransaction, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { fetchSeasonEvents } from './liveScores'
+import { fetchFixtureResults } from './openfootball'
 import { deriveMatchUpdates } from './syncMerge'
 import { recomputeAllUserScores } from '@/scoring/recompute'
 import type { Match } from '@/types'
@@ -81,12 +82,13 @@ export async function forceSync(uid: string): Promise<{ changed: number }> {
 }
 
 async function runSync(): Promise<number> {
-  const [events, matchesSnap] = await Promise.all([
+  const [events, fallbackResults, matchesSnap] = await Promise.all([
     fetchSeasonEvents(),
+    fetchFixtureResults(),
     get(ref(db, 'matches')),
   ])
   const matches = (matchesSnap.val() ?? {}) as Record<string, Match>
-  const { updates, changed, scoresMayHaveChanged } = deriveMatchUpdates(events, matches)
+  const { updates, changed, scoresMayHaveChanged } = deriveMatchUpdates(events, matches, fallbackResults)
 
   if (Object.keys(updates).length > 0) {
     await update(ref(db), updates)

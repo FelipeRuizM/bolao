@@ -1,24 +1,7 @@
 import { get, ref, set } from 'firebase/database'
 import { db } from '@/firebase'
+import { fetchOpenFootballMatches, type OpenFootballMatch } from '@/api/openfootball'
 import type { Match, Stage } from '@/types'
-
-const RAW_URL = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json'
-
-interface OpenFootballMatch {
-  round: string
-  date: string
-  time: string
-  team1: string
-  team2: string
-  group?: string
-  ground?: string
-  score?: { ft?: [number, number] }
-}
-
-interface OpenFootballFile {
-  name: string
-  matches: OpenFootballMatch[]
-}
 
 export function slugify(s: string): string {
   return s
@@ -72,10 +55,8 @@ export function normalizeMatch(raw: OpenFootballMatch): Match {
 }
 
 export async function fetchFixtures(): Promise<Match[]> {
-  const res = await fetch(RAW_URL, { cache: 'no-cache' })
-  if (!res.ok) throw new Error(`openfootball fetch failed: ${res.status}`)
-  const data = (await res.json()) as OpenFootballFile
-  return data.matches.map(normalizeMatch)
+  const matches = await fetchOpenFootballMatches()
+  return matches.map(normalizeMatch)
 }
 
 export async function importFixturesToFirebase(): Promise<{ count: number }> {

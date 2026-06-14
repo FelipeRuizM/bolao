@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
-import type { MatchStatus, Prediction } from '@/types'
+import type { Prediction } from '@/types'
 
 /**
  * Returns every player's prediction for a single match.
- * Only subscribes if the match is no longer SCHEDULED — the security rules
- * deny reading the parent path until kickoff, so subscribing earlier would
- * fail with a permission_denied error.
+ * Only subscribes once kickoff has passed — the security rules deny reading the
+ * parent path until then, so subscribing earlier would fail with a
+ * permission_denied error. Gating on kickoff time (not match status) means
+ * picks reveal the moment the game starts, even if the live-score sync hasn't
+ * yet flipped the match to LIVE.
  */
-export function useMatchPredictions(matchId: string | undefined, status: MatchStatus | undefined) {
+export function useMatchPredictions(matchId: string | undefined, kickoffAt: number | undefined) {
   const [predictions, setPredictions] = useState<Record<string, Prediction> | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!matchId || !status || status === 'SCHEDULED') {
+    if (!matchId || kickoffAt === undefined || Date.now() < kickoffAt) {
       setPredictions(null)
       setError(null)
       return
@@ -27,7 +29,7 @@ export function useMatchPredictions(matchId: string | undefined, status: MatchSt
       },
       (err) => setError(err.message),
     )
-  }, [matchId, status])
+  }, [matchId, kickoffAt])
 
   return { predictions, error }
 }

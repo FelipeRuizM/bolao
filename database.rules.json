@@ -44,7 +44,7 @@
     },
     "predictions": {
       "$matchId": {
-        ".read": "root.child('matches').child($matchId).child('status').val() !== 'SCHEDULED'",
+        ".read": "now >= root.child('matches').child($matchId).child('kickoffAt').val()",
         "$uid": {
           ".read": "$uid === auth.uid",
           ".write": "$uid === auth.uid && now < root.child('matches').child($matchId).child('kickoffAt').val()",

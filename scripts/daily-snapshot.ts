@@ -22,6 +22,7 @@
  * Auth: see scripts/_firebase-admin.ts.
  */
 import { fetchSeasonEvents } from '../src/api/liveScores'
+import { fetchFixtureResults } from '../src/api/openfootball'
 import { deriveMatchUpdates } from '../src/api/syncMerge'
 import { computeAllUserScores } from '../src/scoring/computeAll'
 import { normalizeBigGames } from '../src/scoring/index'
@@ -56,9 +57,10 @@ async function main(): Promise<void> {
     console.log(`Live mode: ${inProgress.length} game(s) in progress.`)
   }
 
-  console.log('Fetching events from TheSportsDB…')
-  const [events, predsSnap, configSnap, usersSnap, bonusPicksSnap] = await Promise.all([
+  console.log('Fetching events from TheSportsDB + openfootball…')
+  const [events, fallbackResults, predsSnap, configSnap, usersSnap, bonusPicksSnap] = await Promise.all([
     fetchSeasonEvents(),
+    fetchFixtureResults(),
     db.ref('predictions').get(),
     db.ref('meta/config').get(),
     db.ref('users').get(),
@@ -78,9 +80,9 @@ async function main(): Promise<void> {
   const bigGames = normalizeBigGames(config.bigGames, config.bigGame)
 
   console.log(
-    `Merging ${events.length} events against ${Object.keys(matches).length} matches…`,
+    `Merging ${events.length} events (+${fallbackResults.length} openfootball results) against ${Object.keys(matches).length} matches…`,
   )
-  const { updates: matchUpdates, changed } = deriveMatchUpdates(events, matches)
+  const { updates: matchUpdates, changed } = deriveMatchUpdates(events, matches, fallbackResults)
 
   if (Object.keys(matchUpdates).length > 0) {
     await db.ref().update(matchUpdates)

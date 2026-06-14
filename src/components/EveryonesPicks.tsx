@@ -15,7 +15,7 @@ interface Row {
 }
 
 export function EveryonesPicks({ match }: { match: Match }) {
-  const { predictions, error } = useMatchPredictions(match.id, match.status)
+  const { predictions, error } = useMatchPredictions(match.id, match.kickoffAt)
   const users = useUsers()
   const { user } = useAuth()
   const t = useT()
@@ -53,7 +53,11 @@ export function EveryonesPicks({ match }: { match: Match }) {
     return list
   }, [users, predictions, match])
 
-  if (match.status === 'SCHEDULED') return null
+  // The hook only returns data once kickoff has passed (when picks lock and the
+  // rules permit the read), so a null result means "not revealed yet" — render
+  // nothing until then, regardless of whether the live-score sync has flipped
+  // the match to LIVE.
+  if (predictions === null && !error) return null
 
   return (
     <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
