@@ -214,6 +214,12 @@ const pt: typeof en = {
     recomputeNow: 'Recalcular agora',
     recomputing: 'Recalculando…',
     recomputeOk: 'Pronto. Ranking atualizado.',
+    updateGraphHeading: 'Atualizar gráfico de pontos',
+    updateGraphDesc:
+      'Reconstrói o gráfico de pontos ao longo do tempo a partir de todos os jogos encerrados (um ponto por jogo). Use se o gráfico parecer desatualizado.',
+    updateGraphNow: 'Atualizar gráfico',
+    updatingGraph: 'Atualizando…',
+    updateGraphOk: 'Gráfico atualizado — {points} ponto(s).',
     scoreOverrideHeading: 'Editar placar manualmente',
     scoreOverrideDesc:
       'Busque um jogo e defina placar e status manualmente. Dispara recálculo automático.',

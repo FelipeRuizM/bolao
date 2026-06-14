@@ -11,9 +11,10 @@ import type {
 } from './index'
 import type { BonusPick, Match, Prediction, UserScore } from '@/types'
 
+type ComputeOpts = Omit<Parameters<typeof computeAllUserScores>[0], 'matches'>
+
 /**
- * Recompute every player's leaderboard total from /matches, /predictions,
- * and /bonusPicks (if /meta/config/bonusAnswers is set). Writes /scores.
+ * Load everything the scoring engine needs, read from the browser.
  *
  * Note on reads: typical security rules grant per-match prediction reads only
  * after kickoff (status != "SCHEDULED"), so reading the whole /predictions
@@ -21,12 +22,11 @@ import type { BonusPick, Match, Prediction, UserScore } from '@/types'
  * match's predictions individually — each one passes the per-match rule.
  * /bonusPicks is read defensively in case the bonus lock is still in the
  * future (rules usually hide bonus picks until the lock).
- *
- * Also rebuilds /scoreHistory — one cumulative snapshot per FT match — so the
- * rank-over-time chart refreshes as soon as a game finishes (a sync recomputes
- * scores on every client), not only when the nightly snapshot cron runs.
  */
-export async function recomputeAllUserScores(): Promise<void> {
+async function loadComputeInputs(): Promise<{
+  matches: Record<string, Match>
+  computeOpts: ComputeOpts
+}> {
   const [matchesSnap, configSnap, usersSnap] = await Promise.all([
     get(ref(db, 'matches')),
     get(ref(db, 'meta/config')),
@@ -66,8 +66,7 @@ export async function recomputeAllUserScores(): Promise<void> {
     console.info('[recompute] /bonusPicks not readable yet, skipping bonus credit:', err)
   }
 
-  const bigGames = normalizeBigGames(config.bigGames, config.bigGame)
-  const computeOpts = {
+  const computeOpts: ComputeOpts = {
     predictions,
     users,
     bonusPicks,
@@ -75,8 +74,22 @@ export async function recomputeAllUserScores(): Promise<void> {
     bonusValues: config.bonusValues,
     bonusAnswers: config.bonusAnswers,
     stageMultipliers: config.stageMultipliers,
-    bigGames,
+    bigGames: normalizeBigGames(config.bigGames, config.bigGame),
   }
+
+  return { matches, computeOpts }
+}
+
+/**
+ * Recompute every player's leaderboard total from /matches, /predictions,
+ * and /bonusPicks (if /meta/config/bonusAnswers is set). Writes /scores.
+ *
+ * Also rebuilds /scoreHistory — one cumulative snapshot per FT match — so the
+ * rank-over-time chart refreshes as soon as a game finishes (a sync recomputes
+ * scores on every client), not only when the nightly snapshot cron runs.
+ */
+export async function recomputeAllUserScores(): Promise<void> {
+  const { matches, computeOpts } = await loadComputeInputs()
 
   const computed = computeAllUserScores({ matches, ...computeOpts })
 
@@ -89,23 +102,33 @@ export async function recomputeAllUserScores(): Promise<void> {
     await update(ref(db), updates as unknown as Record<string, unknown>)
   }
 
-  await rebuildScoreHistory(matches, computeOpts)
+  await writeScoreHistory(matches, computeOpts)
 }
 
 /**
- * Rebuild /scoreHistory as one cumulative snapshot per FT match, in kickoff
- * order (tiebreak: match id). Each snapshot scores only the FT matches up to
- * and including that match, so the chart gains one point per finished game.
- * Keyed `{kickoffAt}_{matchId}` so a lexical sort is chronological.
- *
- * Written with a single `set` (atomic, no intermediate empty state). Failures
- * are swallowed: the chart is a non-critical view, and security rules may not
- * grant /scoreHistory writes to every client — the nightly cron is the backstop.
+ * Rebuild only /scoreHistory (the rank-over-time chart) from current data,
+ * without touching /scores. Unlike the background rebuild below, this lets a
+ * write failure propagate, so an admin who triggers it sees a permissions or
+ * network error instead of a silent no-op. Returns how many per-match points
+ * the chart now has.
  */
-async function rebuildScoreHistory(
+export async function rebuildScoreHistoryNow(): Promise<{ points: number }> {
+  const { matches, computeOpts } = await loadComputeInputs()
+  const history = buildScoreHistory(matches, computeOpts)
+  await set(ref(db, 'scoreHistory'), history)
+  return { points: Object.keys(history).length }
+}
+
+/**
+ * Build /scoreHistory: one cumulative snapshot per FT match, in kickoff order
+ * (tiebreak: match id). Each snapshot scores only the FT matches up to and
+ * including that match, so the chart gains one point per finished game. Keyed
+ * `{kickoffAt}_{matchId}` so a lexical sort is chronological.
+ */
+function buildScoreHistory(
   matches: Record<string, Match>,
-  computeOpts: Omit<Parameters<typeof computeAllUserScores>[0], 'matches'>,
-): Promise<void> {
+  computeOpts: ComputeOpts,
+): Record<string, Record<string, number>> {
   const ftMatches = Object.values(matches)
     .filter((m) => m.status === 'FT' && m.score)
     .sort((a, b) => a.kickoffAt - b.kickoffAt || a.id.localeCompare(b.id))
@@ -119,9 +142,21 @@ async function rebuildScoreHistory(
     for (const [uid, score] of Object.entries(snapshot)) point[uid] = score.total
     history[`${m.kickoffAt}_${m.id}`] = point
   }
+  return history
+}
 
+/**
+ * Write /scoreHistory as part of the background recompute. Failures are
+ * swallowed: the chart is a non-critical view, and security rules may not grant
+ * /scoreHistory writes to every client — the nightly cron is the backstop.
+ * Admins who want a guaranteed, error-surfacing rebuild use rebuildScoreHistoryNow.
+ */
+async function writeScoreHistory(
+  matches: Record<string, Match>,
+  computeOpts: ComputeOpts,
+): Promise<void> {
   try {
-    await set(ref(db, 'scoreHistory'), history)
+    await set(ref(db, 'scoreHistory'), buildScoreHistory(matches, computeOpts))
   } catch (err) {
     console.info('[recompute] /scoreHistory not writable, leaving chart to the cron:', err)
   }

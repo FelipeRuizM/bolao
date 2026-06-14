@@ -212,6 +212,12 @@ const en = {
     recomputeNow: 'Recompute now',
     recomputing: 'Recomputing…',
     recomputeOk: 'Done. Leaderboard refreshed.',
+    updateGraphHeading: 'Update points chart',
+    updateGraphDesc:
+      'Rebuilds the points-over-time chart from all finished matches (one point per game). Use if the chart looks out of date.',
+    updateGraphNow: 'Update chart',
+    updatingGraph: 'Updating…',
+    updateGraphOk: 'Chart updated — {points} match point(s).',
     scoreOverrideHeading: 'Manual score override',
     scoreOverrideDesc:
       'Search for a match and set its score and status manually. Triggers a recompute.',

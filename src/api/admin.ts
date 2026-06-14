@@ -1,6 +1,6 @@
 import { get, ref, set, update } from 'firebase/database'
 import { db } from '@/firebase'
-import { recomputeAllUserScores } from '@/scoring/recompute'
+import { rebuildScoreHistoryNow, recomputeAllUserScores } from '@/scoring/recompute'
 import { BONUS_KEYS } from '@/scoring'
 import type {
   BigGameConfig,
@@ -83,6 +83,11 @@ export async function setLockBonusAt(timestamp: number): Promise<void> {
 
 export async function recomputeNow(): Promise<void> {
   await recomputeAllUserScores()
+}
+
+/** Rebuild only the rank-over-time chart (/scoreHistory). Surfaces errors. */
+export async function rebuildGraphNow(): Promise<{ points: number }> {
+  return rebuildScoreHistoryNow()
 }
 
 export async function setPrizePerUser(amount: number): Promise<void> {

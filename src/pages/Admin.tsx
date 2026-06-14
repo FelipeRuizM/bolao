@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useT } from '@/i18n'
 import { AdminButton, AdminCard, StatusLine } from '@/components/admin/AdminCard'
 import { RecomputeSection } from '@/components/admin/RecomputeSection'
+import { UpdateGraphSection } from '@/components/admin/UpdateGraphSection'
 import { ScoreOverrideSection } from '@/components/admin/ScoreOverrideSection'
 import { BonusAdminSection } from '@/components/admin/BonusAdminSection'
 import { AllowlistSection } from '@/components/admin/AllowlistSection'
@@ -89,6 +90,7 @@ export function Admin() {
       <ImportFixturesSection />
       <SyncSection />
       <RecomputeSection />
+      <UpdateGraphSection />
       <BigGameSection />
       <PrizeSection />
       <ScoreOverrideSection />
