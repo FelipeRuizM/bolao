@@ -94,7 +94,7 @@ const pt: typeof en = {
     lastSaved: 'Último salvo {when}',
     locked: 'Palpites travados',
     gameLocked: 'Jogo bloqueado',
-    predictionsOpenAt: 'Os palpites abrem {when} (uma semana antes do início).',
+    predictionsOpenAt: 'Os palpites abrem {when} (três dias antes do início).',
     yourPick: 'Seu palpite:',
     noPickSubmitted: 'Você não palpitou neste jogo.',
     everyonesPicks: 'Palpites de todos',

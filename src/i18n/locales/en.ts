@@ -92,7 +92,7 @@ const en = {
     lastSaved: 'Last saved {when}',
     locked: 'Predictions locked',
     gameLocked: 'Game locked',
-    predictionsOpenAt: 'Picking opens {when} (one week before kickoff).',
+    predictionsOpenAt: 'Picking opens {when} (three days before kickoff).',
     yourPick: 'Your pick:',
     noPickSubmitted: "You didn't submit a pick for this match.",
     everyonesPicks: "Everyone's picks",
