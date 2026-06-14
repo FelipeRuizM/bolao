@@ -39,15 +39,17 @@ export function EveryonesPicks({ match }: { match: Match }) {
       }
       return { uid, name: displayNameFor(uid, profile), prediction: pred, points }
     })
-    // Sort by total predicted goals (most first); users with no pick sink to the
+    // Sort by the left (home) team's predicted score first, then the right
+    // (away) team's score — both highest first. Users with no pick sink to the
     // bottom. Tiebreak by name.
     list.sort((a, b) => {
       const aHasPick = a.prediction ? 0 : 1
       const bHasPick = b.prediction ? 0 : 1
       if (aHasPick !== bHasPick) return aHasPick - bHasPick
-      const aGoals = a.prediction ? a.prediction.home + a.prediction.away : 0
-      const bGoals = b.prediction ? b.prediction.home + b.prediction.away : 0
-      if (aGoals !== bGoals) return bGoals - aGoals
+      if (a.prediction && b.prediction) {
+        if (a.prediction.home !== b.prediction.home) return b.prediction.home - a.prediction.home
+        if (a.prediction.away !== b.prediction.away) return b.prediction.away - a.prediction.away
+      }
       return a.name.localeCompare(b.name)
     })
     return list
