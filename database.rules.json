@@ -1,0 +1,86 @@
+{
+  "rules": {
+    "meta": {
+      "config": {
+        ".read": "auth != null",
+        ".write": "root.child('users/' + auth.uid + '/role').val() === 'admin'"
+      },
+      "sync": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".validate": "!newData.exists() || newData.child('syncingBy').val() === null || newData.child('syncingBy').val() === auth.uid"
+      }
+    },
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "root.child('users/' + auth.uid + '/role').val() === 'admin' || ($uid === auth.uid && !data.exists() && newData.child('role').val() !== 'admin')",
+        "displayName": { ".write": "$uid === auth.uid" },
+        "email": { ".write": "$uid === auth.uid" },
+        "role": { ".validate": "newData.val() === 'admin' || newData.val() === 'player'" }
+      }
+    },
+    "scores": {
+      ".read": "auth != null",
+      ".write": "root.child('users/' + auth.uid + '/role').val() === 'admin' || root.child('meta/sync/syncingBy').val() === auth.uid",
+      "$uid": {
+        "total": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "bonusPts": { ".validate": "newData.isNumber() && newData.val() >= 0" }
+      }
+    },
+    "matches": {
+      ".read": "auth != null",
+      ".write": "root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$matchId": {
+        "score": {
+          ".write": "root.child('meta/sync/syncingBy').val() === auth.uid || root.child('users/' + auth.uid + '/role').val() === 'admin'",
+          ".validate": "!newData.exists() || (newData.hasChildren(['home', 'away']) && newData.child('home').isNumber() && newData.child('away').isNumber() && newData.child('home').val() >= 0 && newData.child('away').val() >= 0)"
+        },
+        "status": {
+          ".write": "root.child('meta/sync/syncingBy').val() === auth.uid || root.child('users/' + auth.uid + '/role').val() === 'admin'",
+          ".validate": "newData.val() === 'SCHEDULED' || newData.val() === 'LIVE' || newData.val() === 'FT'"
+        }
+      }
+    },
+    "predictions": {
+      "$matchId": {
+        ".read": "root.child('matches').child($matchId).child('status').val() !== 'SCHEDULED'",
+        "$uid": {
+          ".read": "$uid === auth.uid",
+          ".write": "$uid === auth.uid && now < root.child('matches').child($matchId).child('kickoffAt').val()",
+          ".validate": "newData.hasChildren(['home', 'away']) && newData.child('home').isNumber() && newData.child('home').val() >= 0 && newData.child('home').val() <= 30 && newData.child('away').isNumber() && newData.child('away').val() >= 0 && newData.child('away').val() <= 30"
+        }
+      }
+    },
+    "userPredictions": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        "$matchId": {
+          ".write": "$uid === auth.uid && now < root.child('matches').child($matchId).child('kickoffAt').val()",
+          ".validate": "newData.hasChildren(['home', 'away']) && newData.child('home').isNumber() && newData.child('away').isNumber()"
+        }
+      }
+    },
+    "bonusPicks": {
+      ".read": "root.child('meta/config/lockBonusAt').exists() && now >= root.child('meta/config/lockBonusAt').val()",
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid && (!root.child('meta/config/lockBonusAt').exists() || now < root.child('meta/config/lockBonusAt').val())",
+        ".validate": "newData.hasChildren(['tournamentWinner', 'topScorer']) && newData.child('tournamentWinner').isString() && newData.child('topScorer').isString()"
+      }
+    },
+    "scoreHistory": {
+      ".read": "auth != null",
+      ".write": "root.child('users/' + auth.uid + '/role').val() === 'admin' || root.child('meta/sync/syncingBy').val() === auth.uid"
+    },
+    "predictionStatus": {
+      ".read": "auth != null",
+      "$matchId": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.isBoolean() && newData.val() === true"
+        }
+      }
+    }
+  }
+}
