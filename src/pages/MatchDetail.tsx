@@ -9,6 +9,7 @@ import { isPredictionOpen, predictionOpensAt, submitPrediction } from '@/api/pre
 import { ScoreStepper } from '@/components/ScoreStepper'
 import { EveryonesPicks } from '@/components/EveryonesPicks'
 import { PickStatusList } from '@/components/PickStatusList'
+import { MatchOverrideForm } from '@/components/admin/MatchOverrideForm'
 import { useT, useLocale, bcp47 } from '@/i18n'
 import { bigGameMultiplier, isBigGame, multiplierFor, type BigGames } from '@/scoring'
 import { useBigGames } from '@/hooks/useMetaConfig'
@@ -99,7 +100,7 @@ function MatchHeader({ match, bigGames }: { match: Match; bigGames: BigGames }) 
 export function MatchDetail() {
   const { id } = useParams<{ id: string }>()
   const match = useMatch(id)
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const myPrediction = useMyPrediction(id, user?.uid)
   const t = useT()
   const { locale } = useLocale()
@@ -288,8 +289,14 @@ export function MatchDetail() {
             </div>
           )}
         </div>
-        <div className="px-4 pb-8 sm:px-6">
+        <div className="px-4 pb-8 sm:px-6 space-y-6">
           <PickStatusList matchId={match.id} />
+          {isAdmin && (
+            <section className="bg-slate-900 border border-amber-500/30 rounded-2xl p-4 space-y-3">
+              <h2 className="font-semibold text-sm text-amber-300">{t('admin.scoreOverrideHeading')}</h2>
+              <MatchOverrideForm match={match} />
+            </section>
+          )}
         </div>
       </form>
     )
@@ -325,6 +332,13 @@ export function MatchDetail() {
           <p className="text-sm text-slate-400">{t('matchDetail.noPickSubmitted')}</p>
         )}
       </section>
+
+      {isAdmin && (
+        <section className="bg-slate-900 border border-amber-500/30 rounded-2xl p-4 space-y-3">
+          <h2 className="font-semibold text-sm text-amber-300">{t('admin.scoreOverrideHeading')}</h2>
+          <MatchOverrideForm match={match} />
+        </section>
+      )}
 
       <EveryonesPicks match={match} />
     </div>
