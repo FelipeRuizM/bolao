@@ -58,6 +58,64 @@ describe('deriveMatchUpdates — TheSportsDB', () => {
   })
 })
 
+describe('deriveMatchUpdates — manual override guard', () => {
+  it('ignores a feed score lower than a manual override', () => {
+    const { match, date } = startedMatch({
+      status: 'LIVE',
+      score: { home: 2, away: 0 },
+      manualOverride: true,
+    })
+    const { updates, changed } = deriveMatchUpdates(
+      [tsdbEvent(date, { strStatus: '2H', intHomeScore: '1', intAwayScore: '0' })],
+      { m1: match },
+    )
+    expect(updates).toEqual({})
+    expect(changed).toBe(0)
+  })
+
+  it('accepts a feed score with more total goals than the override', () => {
+    const { match, date } = startedMatch({
+      status: 'LIVE',
+      score: { home: 2, away: 0 },
+      manualOverride: true,
+    })
+    const { updates } = deriveMatchUpdates(
+      [tsdbEvent(date, { strStatus: '2H', intHomeScore: '2', intAwayScore: '1' })],
+      { m1: match },
+    )
+    expect(updates['matches/m1/score']).toEqual({ home: 2, away: 1 })
+  })
+
+  it('lets the feed finalize (FT) an override even with a lower score', () => {
+    const { match, date } = startedMatch({
+      status: 'LIVE',
+      score: { home: 2, away: 0 },
+      manualOverride: true,
+    })
+    const { updates, scoresMayHaveChanged } = deriveMatchUpdates(
+      [tsdbEvent(date, { strStatus: 'FT', intHomeScore: '1', intAwayScore: '0' })],
+      { m1: match },
+    )
+    expect(updates['matches/m1/status']).toBe('FT')
+    expect(updates['matches/m1/score']).toEqual({ home: 1, away: 0 })
+    expect(scoresMayHaveChanged).toBe(true)
+  })
+
+  it('keeps a finalized override locked against a regressing feed', () => {
+    const { match, date } = startedMatch({
+      status: 'FT',
+      score: { home: 2, away: 0 },
+      manualOverride: true,
+    })
+    const { updates, changed } = deriveMatchUpdates(
+      [tsdbEvent(date, { strStatus: 'FT', intHomeScore: '1', intAwayScore: '0' })],
+      { m1: match },
+    )
+    expect(updates).toEqual({})
+    expect(changed).toBe(0)
+  })
+})
+
 describe('deriveMatchUpdates — openfootball fallback', () => {
   const result = (date: string, home = 2, away = 0): FixtureResult => ({
     date,

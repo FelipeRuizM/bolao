@@ -44,6 +44,13 @@ export function deriveMatchUpdates(
     const newStatus = mapStatus(event.strStatus)
     const newScore = parseScore(event)
 
+    // A manually overridden match is protected from the lagging feed: accept an
+    // update only when it raises the total goals or finalizes the match (FT).
+    // This stops the API walking an admin's "2–0" back down to a stale "1–0".
+    if (match.manualOverride && !overrideUpdateAllowed(match, newStatus, newScore)) {
+      continue
+    }
+
     const statusChanged = newStatus !== match.status
     const scoreChanged =
       !!newScore &&
@@ -81,6 +88,23 @@ export function deriveMatchUpdates(
   }
 
   return { updates, changed, scoresMayHaveChanged }
+}
+
+/**
+ * For a manually overridden match, decide whether an incoming feed update may
+ * apply. Allowed only when the match is being finalized (transitioning to FT)
+ * or the new score has strictly more total goals than the current one — never
+ * a regression. A finished override (already FT) stays locked.
+ */
+function overrideUpdateAllowed(
+  match: Match,
+  newStatus: Match['status'],
+  newScore: { home: number; away: number } | null,
+): boolean {
+  if (newStatus === 'FT' && match.status !== 'FT') return true
+  if (!newScore) return false
+  const curTotal = (match.score?.home ?? 0) + (match.score?.away ?? 0)
+  return newScore.home + newScore.away > curTotal
 }
 
 function buildMatchIndex(matches: Record<string, Match>): Record<string, Match> {

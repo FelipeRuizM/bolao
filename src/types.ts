@@ -15,6 +15,12 @@ export interface Match {
   status: MatchStatus
   score?: Score
   group?: string
+  /**
+   * Set when an admin manually overrides the score/status. While true, the live
+   * sync may only raise the score (more total goals) or finalize the match (FT);
+   * it can't walk a manually-entered score back down. See deriveMatchUpdates.
+   */
+  manualOverride?: boolean
 }
 
 export interface Prediction {

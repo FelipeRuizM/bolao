@@ -39,6 +39,8 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
   const users = useUsers()
   const [history, setHistory] = useState<Record<string, Record<string, number>> | null>(null)
   const [matches, setMatches] = useState<Record<string, Match> | null>(null)
+  // Player uids the viewer has chosen to hide from the chart (legend toggles).
+  const [hidden, setHidden] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     return onValue(ref(db, 'scoreHistory'), (snap) => {
@@ -100,11 +102,33 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
   if (history === null || matches === null) return null
   if (chartData.length === 0) return null
 
+  const visibleLines = lines.filter((line) => !hidden.has(line.uid))
+
+  function toggle(uid: string) {
+    setHidden((prev) => {
+      const next = new Set(prev)
+      if (next.has(uid)) next.delete(uid)
+      else next.add(uid)
+      return next
+    })
+  }
+
   return (
     <section className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-4 lg:h-full lg:flex lg:flex-col">
-      <h2 className="text-sm sm:text-base font-bold text-slate-200 mb-3 px-1">
-        {t('home.pointsOverTime')}
-      </h2>
+      <div className="flex items-center justify-between gap-2 mb-3 px-1">
+        <h2 className="text-sm sm:text-base font-bold text-slate-200">
+          {t('home.pointsOverTime')}
+        </h2>
+        {hidden.size > 0 && (
+          <button
+            type="button"
+            onClick={() => setHidden(new Set())}
+            className="text-xs text-brand-400 hover:text-brand-300 whitespace-nowrap"
+          >
+            {t('home.showAll')}
+          </button>
+        )}
+      </div>
       <div className="h-64 sm:h-80 lg:h-auto lg:flex-1 lg:min-h-0 -mx-2">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 12, left: -10, bottom: 0 }}>
@@ -141,7 +165,7 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
                 return [`${value} pts`, line?.name ?? String(name)]
               }}
             />
-            {lines.map((line) => (
+            {visibleLines.map((line) => (
               <Line
                 key={line.uid}
                 type="monotone"
@@ -157,17 +181,33 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
         </ResponsiveContainer>
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1.5 px-1 pt-3 text-xs">
-        {lines.map((line) => (
-          <span key={line.uid} className="flex items-center gap-1.5">
-            <span
-              className="w-2 h-2 rounded-full inline-block"
-              style={{ background: line.color }}
-            />
-            <span className={line.uid === highlightUid ? 'text-slate-100 font-semibold' : 'text-slate-400'}>
-              {line.name}
-            </span>
-          </span>
-        ))}
+        {lines.map((line) => {
+          const isHidden = hidden.has(line.uid)
+          return (
+            <button
+              key={line.uid}
+              type="button"
+              onClick={() => toggle(line.uid)}
+              aria-pressed={!isHidden}
+              title={t(isHidden ? 'home.showPlayer' : 'home.hidePlayer')}
+              className={`flex items-center gap-1.5 transition-opacity hover:opacity-80 ${
+                isHidden ? 'opacity-40' : ''
+              }`}
+            >
+              <span
+                className="w-2 h-2 rounded-full inline-block"
+                style={{ background: line.color }}
+              />
+              <span
+                className={`${
+                  line.uid === highlightUid ? 'text-slate-100 font-semibold' : 'text-slate-400'
+                } ${isHidden ? 'line-through' : ''}`}
+              >
+                {line.name}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </section>
   )

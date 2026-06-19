@@ -19,6 +19,9 @@ export async function overrideMatchResult(
   const updates: Record<string, unknown> = {
     [`matches/${matchId}/status`]: status,
     [`matches/${matchId}/score`]: score,
+    // Mark as manually set so the live sync won't revert this score downward
+    // (see deriveMatchUpdates). Clearing back to SCHEDULED drops the guard.
+    [`matches/${matchId}/manualOverride`]: status === 'SCHEDULED' ? null : true,
   }
   await update(ref(db), updates)
   await recomputeAllUserScores()
