@@ -54,15 +54,19 @@ export function Home() {
   const myPredictions = useMyPredictions(user?.uid)
   const [scores, setScores] = useState<Record<string, UserScore> | null>(null)
 
-  // Featured match: the earliest live game, else the next one up. A SCHEDULED
-  // match past kickoff sorts first, which is right — it's probably live.
-  const featured = useMemo(() => {
-    if (!matches) return null
-    return (
-      matches.find((m) => m.status === 'LIVE') ??
-      matches.find((m) => m.status === 'SCHEDULED') ??
-      null
+  // Featured matches: every live game right now, so simultaneous kickoffs all
+  // show. If nothing's live, fall back to the next one up — including any other
+  // matches sharing that same kickoff time.
+  const { featured, featuredLive } = useMemo(() => {
+    if (!matches) return { featured: [], featuredLive: false }
+    const live = matches.filter((m) => m.status === 'LIVE')
+    if (live.length > 0) return { featured: live, featuredLive: true }
+    const next = matches.find((m) => m.status === 'SCHEDULED')
+    if (!next) return { featured: [], featuredLive: false }
+    const upNext = matches.filter(
+      (m) => m.status === 'SCHEDULED' && m.kickoffAt === next.kickoffAt,
     )
+    return { featured: upNext, featuredLive: false }
   }, [matches])
 
   useEffect(() => {
@@ -110,12 +114,20 @@ export function Home() {
         </Link>
       </div>
 
-      {featured && (
+      {featured.length > 0 && (
         <section className="space-y-2 animate-fade-up">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
-            {featured.status === 'LIVE' ? t('home.liveNow') : t('home.upNext')}
+            {featuredLive ? t('home.liveNow') : t('home.upNext')}
           </h2>
-          <MatchCard match={featured} myPrediction={myPredictions[featured.id]} />
+          <div className="space-y-2">
+            {featured.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                myPrediction={myPredictions[match.id]}
+              />
+            ))}
+          </div>
         </section>
       )}
 
