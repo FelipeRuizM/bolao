@@ -1,8 +1,8 @@
 import { ref, serverTimestamp, set, update } from 'firebase/database'
 import { db } from '@/firebase'
 
-/** Picking opens 3 days before kickoff and closes at kickoff. */
-export const PREDICTION_WINDOW_MS = 3 * 24 * 60 * 60 * 1000
+/** Picking opens 5 days before kickoff and closes at kickoff. */
+export const PREDICTION_WINDOW_MS = 5 * 24 * 60 * 60 * 1000
 
 export function predictionOpensAt(kickoffAt: number): number {
   return kickoffAt - PREDICTION_WINDOW_MS
