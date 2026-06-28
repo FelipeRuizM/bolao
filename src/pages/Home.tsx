@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { HelpCircle, Trash2 } from 'lucide-react'
+import { HelpCircle } from 'lucide-react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
@@ -20,6 +20,7 @@ interface LeaderboardRow {
   displayName: string
   total: number
   isAdmin: boolean
+  hidden: boolean
 }
 
 // Podium styling for the top three rows, blended straight into the leaderboard:
@@ -82,13 +83,22 @@ export function Home() {
       displayName: profile.displayName ?? profile.email ?? uid.slice(0, 6),
       total: scores[uid]?.total ?? 0,
       isAdmin: profile.role === 'admin',
+      hidden: profile.hidden === true,
     }))
     list.sort((a, b) => b.total - a.total)
     return list
   }, [users, scores])
 
+  // Players who gave up are hidden from the standings, but the prize pool above
+  // is computed from the full roster (they already paid in) — only their row
+  // disappears.
+  const visibleRows = useMemo(
+    () => rows?.filter((r) => !r.hidden) ?? null,
+    [rows],
+  )
+
   // Everyone in the group plays (and has paid in), but admins don't contribute
-  // to the prize pot.
+  // to the prize pot. Hidden players still count — they paid.
   const payingCount = useMemo(
     () => rows?.filter((r) => !r.isAdmin).length ?? 0,
     [rows],
@@ -131,19 +141,19 @@ export function Home() {
         </section>
       )}
 
-      {rows === null && <p className="text-slate-400">{t('home.loading')}</p>}
-      {rows !== null && rows.length === 0 && (
+      {visibleRows === null && <p className="text-slate-400">{t('home.loading')}</p>}
+      {visibleRows !== null && visibleRows.length === 0 && (
         <p className="text-slate-400">{t('home.noPlayers')}</p>
       )}
-      {rows !== null && rows.length > 0 && (
+      {visibleRows !== null && visibleRows.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
           <ol className="divide-y divide-slate-800 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden">
-            {rows.map((row, i) => {
+            {visibleRows.map((row, i) => {
               const medal = MEDALS[i]
               const prize = showPrize && i < prizeByRank.length ? prizeByRank[i] : null
               // Wooden-spoon marker — only when there's a clear last place below
               // the podium, so it never lands on a medal row.
-              const isLast = rows.length > 3 && i === rows.length - 1
+              const isLast = visibleRows.length > 3 && i === visibleRows.length - 1
               const isMe = row.uid === user?.uid
               return (
                 <li key={row.uid}>
@@ -166,7 +176,7 @@ export function Home() {
                           aria-label={t('home.lastPlaceTitle')}
                           className="shrink-0 inline-flex items-center gap-0.5 text-slate-500"
                         >
-                          <Trash2 size={14} />
+                          <span aria-hidden="true">🗑️</span>
                           <span aria-hidden="true">😂</span>
                         </span>
                       )}

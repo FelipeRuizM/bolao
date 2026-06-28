@@ -62,7 +62,11 @@ export function RankOverTime({ highlightUid, filterUids }: Props) {
     const keys = Object.keys(history).sort()
     if (keys.length === 0) return { chartData: [], lines: [] }
 
-    const allUids = Object.keys(users).sort()
+    // Players an admin has hidden (gave up) drop off the chart too, matching
+    // the leaderboard.
+    const allUids = Object.keys(users)
+      .filter((uid) => users[uid]?.hidden !== true)
+      .sort()
     const uidColor: Record<string, string> = {}
     allUids.forEach((uid, i) => { uidColor[uid] = COLORS[i % COLORS.length]! })
 

@@ -46,17 +46,17 @@
       "$matchId": {
         ".read": "now >= root.child('matches').child($matchId).child('kickoffAt').val()",
         "$uid": {
-          ".read": "$uid === auth.uid",
-          ".write": "$uid === auth.uid && now < root.child('matches').child($matchId).child('kickoffAt').val()",
+          ".read": "$uid === auth.uid || root.child('users/' + auth.uid + '/role').val() === 'admin'",
+          ".write": "($uid === auth.uid && now < root.child('matches').child($matchId).child('kickoffAt').val()) || root.child('users/' + auth.uid + '/role').val() === 'admin'",
           ".validate": "newData.hasChildren(['home', 'away']) && newData.child('home').isNumber() && newData.child('home').val() >= 0 && newData.child('home').val() <= 30 && newData.child('away').isNumber() && newData.child('away').val() >= 0 && newData.child('away').val() <= 30"
         }
       }
     },
     "userPredictions": {
       "$uid": {
-        ".read": "$uid === auth.uid",
+        ".read": "$uid === auth.uid || root.child('users/' + auth.uid + '/role').val() === 'admin'",
         "$matchId": {
-          ".write": "$uid === auth.uid && now < root.child('matches').child($matchId).child('kickoffAt').val()",
+          ".write": "($uid === auth.uid && now < root.child('matches').child($matchId).child('kickoffAt').val()) || root.child('users/' + auth.uid + '/role').val() === 'admin'",
           ".validate": "newData.hasChildren(['home', 'away']) && newData.child('home').isNumber() && newData.child('away').isNumber()"
         }
       }

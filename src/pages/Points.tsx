@@ -97,7 +97,8 @@ export function Points() {
       </Card>
 
       <Card title={t('points.brazilHeading')}>
-        <Row label={t('points.brazilRow')} value={formatMultiplier(BRAZIL_MULTIPLIER)} />
+        <Row label={t('points.brazilGroupRow')} value={formatMultiplier(BRAZIL_MULTIPLIER)} />
+        <Row label={t('points.brazilKnockoutRow')} value="+1" />
         <p className="text-xs text-slate-400 mt-3">{t('points.brazilDesc')}</p>
       </Card>
 
@@ -120,14 +121,16 @@ function Example() {
   const config = useConfig()
   const gd = config?.pointValues.goalDifference ?? 5
   const stageFinal = config?.stageMultipliers.final ?? DEFAULT_STAGE_MULTIPLIERS.final
-  const total = gd * stageFinal * BRAZIL_MULTIPLIER
+  // Brazil in a knockout adds +1 to the stage multiplier (not the old ×3).
+  const brazilFinal = stageFinal + 1
+  const total = gd * brazilFinal
   return (
     <div className="text-sm text-slate-300 space-y-2">
       <p>{t('points.exampleScenario')}</p>
       <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside">
         <li>{t('points.exampleStep1', { n: gd })}</li>
         <li>{t('points.exampleStep2', { n: formatMultiplier(stageFinal) })}</li>
-        <li>{t('points.exampleStep3', { n: formatMultiplier(BRAZIL_MULTIPLIER) })}</li>
+        <li>{t('points.exampleStep3', { n: formatMultiplier(brazilFinal) })}</li>
       </ul>
       <p className="text-slate-100 font-semibold">
         {t('points.exampleTotal', { n: total })}

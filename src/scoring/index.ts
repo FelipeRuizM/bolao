@@ -169,14 +169,26 @@ export function multiplierFor(
   stageMultipliers: StageMultipliers = DEFAULT_STAGE_MULTIPLIERS,
   options: { matchId?: string; bigGames?: BigGames | null } = {},
 ): number {
-  const stageMult = stageMultipliers[stage]
-  const brazilMult = homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME ? BRAZIL_MULTIPLIER : 1
-  const bigGameMult = bigGameMultiplier(options.matchId, options.bigGames)
-  return stageMult * brazilMult * bigGameMult
+  const isBrazil = homeTeam === BRAZIL_NAME || awayTeam === BRAZIL_NAME
+  let mult = stageMultipliers[stage]
+  // Brazil rule: group-stage games keep the legacy ×3 (so already-played group
+  // scores don't shift), but from the knockouts on a Brazil match instead adds
+  // +1 to that round's multiplier — e.g. the 6× final becomes 7×.
+  if (isBrazil) {
+    mult = stage === 'group' ? mult * BRAZIL_MULTIPLIER : mult + 1
+  }
+  // A big game adds a flat +1 on top of everything else.
+  if (isBigGame(options.matchId ?? '', options.bigGames)) {
+    mult += 1
+  }
+  return mult
 }
 
+/** A match is a "big game" when it's been flagged in the bigGames map. */
 export function isBigGame(matchId: string, bigGames: BigGames | null | undefined): boolean {
-  return bigGameMultiplier(matchId, bigGames) > 1
+  if (!matchId || !bigGames) return false
+  const m = bigGames[matchId]
+  return typeof m === 'number' && Number.isFinite(m) && m > 0
 }
 
 export interface ComputePointsArgs {

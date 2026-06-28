@@ -19,7 +19,6 @@ export function BigGameSection() {
   const bigGames = useBigGames()
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [multiplier, setMultiplier] = useState<number>(2)
   const [busy, setBusy] = useState(false)
   const [ok, setOk] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -54,7 +53,7 @@ export function BigGameSection() {
     setOk(null)
     setErr(null)
     try {
-      await setBigGame(selected.id, multiplier)
+      await setBigGame(selected.id)
       setOk(t('admin.bigGameSaved'))
       setSelectedId(null)
       setSearch('')
@@ -83,7 +82,7 @@ export function BigGameSection() {
     <AdminCard title={t('admin.bigGameHeading')} description={t('admin.bigGameDesc')}>
       {current.length > 0 && (
         <ul className="space-y-2">
-          {current.map(({ match, matchId, mult }) => (
+          {current.map(({ match, matchId }) => (
             <li
               key={matchId}
               className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2 text-sm flex items-center justify-between gap-2"
@@ -92,9 +91,7 @@ export function BigGameSection() {
                 <div className="text-rose-300 font-semibold truncate">
                   {formatLabel(match, bcp47(locale), t)}
                 </div>
-                <div className="text-xs text-rose-400/80">
-                  {t('admin.bigGameCurrent', { n: mult })}
-                </div>
+                <div className="text-xs text-rose-400/80">{t('admin.bigGameCurrent')}</div>
               </div>
               <button
                 type="button"
@@ -155,24 +152,7 @@ export function BigGameSection() {
             </button>
           </div>
 
-          <label className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-slate-300 flex-1">{t('admin.bigGameMultiplierLabel')}</span>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={1}
-              step={0.5}
-              value={multiplier}
-              onChange={(e) => {
-                const n = Number(e.target.value)
-                setMultiplier(Number.isFinite(n) && n > 0 ? n : 1)
-              }}
-              className="w-24 rounded bg-slate-900 border border-slate-700 px-3 py-2 text-base text-right tabular-nums focus:outline-none focus:border-brand-500"
-            />
-          </label>
-          <p className="text-xs text-slate-500">
-            {t('admin.bigGameStackingHint', { n: multiplier })}
-          </p>
+          <p className="text-xs text-slate-500">{t('admin.bigGameStackingHint')}</p>
 
           <AdminButton
             label={t('admin.bigGameSave')}

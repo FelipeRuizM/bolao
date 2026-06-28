@@ -11,7 +11,7 @@ import { EveryonesPicks } from '@/components/EveryonesPicks'
 import { PickStatusList } from '@/components/PickStatusList'
 import { MatchOverrideForm } from '@/components/admin/MatchOverrideForm'
 import { useT, useLocale, bcp47 } from '@/i18n'
-import { bigGameMultiplier, isBigGame, multiplierFor, type BigGames } from '@/scoring'
+import { isBigGame, multiplierFor, type BigGames } from '@/scoring'
 import { useBigGames } from '@/hooks/useMetaConfig'
 import type { Match, Stage } from '@/types'
 
@@ -305,7 +305,7 @@ export function MatchDetail() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-10 space-y-8">
       <MatchHeader match={match} bigGames={bigGames} />
-      {isBig && <BigGameBanner multiplier={bigGameMultiplier(match.id, bigGames)} />}
+      {isBig && <BigGameBanner />}
 
       <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h2 className="font-semibold">{t('matchDetail.locked')}</h2>
@@ -345,7 +345,7 @@ export function MatchDetail() {
   )
 }
 
-function BigGameBanner({ multiplier }: { multiplier: number }) {
+function BigGameBanner() {
   const t = useT()
   return (
     <section className="relative overflow-hidden rounded-2xl border border-rose-500/40 bg-gradient-to-br from-rose-500/15 via-rose-500/10 to-transparent px-4 py-3 sm:px-5 sm:py-4 animate-pop-in">
@@ -356,9 +356,7 @@ function BigGameBanner({ multiplier }: { multiplier: number }) {
         </span>
         <div className="min-w-0">
           <div className="text-sm font-semibold text-rose-200">{t('matchDetail.bigGameBannerTitle')}</div>
-          <div className="text-xs text-rose-300/80">
-            {t('matchDetail.bigGameBannerDesc', { n: multiplier })}
-          </div>
+          <div className="text-xs text-rose-300/80">{t('matchDetail.bigGameBannerDesc')}</div>
         </div>
       </div>
     </section>

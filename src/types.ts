@@ -44,6 +44,12 @@ export interface UserProfile {
   email: string
   /** Friend group this user belongs to. Undefined = the default group. */
   group?: string
+  /**
+   * Set by an admin to hide a player who's given up from the leaderboard. They
+   * still count toward the prize pool (they already paid in) — only their row
+   * is removed.
+   */
+  hidden?: boolean
 }
 
 export interface UserScore {

@@ -1,4 +1,4 @@
-import { get, ref, set, update } from 'firebase/database'
+import { get, ref, serverTimestamp, set, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { rebuildScoreHistoryNow, recomputeAllUserScores } from '@/scoring/recompute'
 import { BONUS_KEYS } from '@/scoring'
@@ -80,6 +80,36 @@ export async function setUserGroup(uid: string, group: string): Promise<void> {
   await set(ref(db, `users/${uid}/group`), g || null)
 }
 
+/**
+ * Hide (or unhide) a player from the leaderboard. Hidden players keep counting
+ * toward the prize pool — only their leaderboard row disappears.
+ */
+export async function setUserHidden(uid: string, hidden: boolean): Promise<void> {
+  // RTDB: writing null removes the key, so an un-hidden user has no flag at all.
+  await set(ref(db, `users/${uid}/hidden`), hidden ? true : null)
+}
+
+/**
+ * Admin-set a player's prediction for a match, bypassing the kickoff lock. Used
+ * to repair picks that never registered. Recomputes the leaderboard after.
+ */
+export async function setUserPrediction(
+  matchId: string,
+  uid: string,
+  home: number,
+  away: number,
+): Promise<void> {
+  if (!Number.isInteger(home) || !Number.isInteger(away) || home < 0 || away < 0) {
+    throw new Error('Score must be non-negative integers.')
+  }
+  const payload = { home, away, submittedAt: serverTimestamp() }
+  await update(ref(db), {
+    [`predictions/${matchId}/${uid}`]: payload,
+    [`userPredictions/${uid}/${matchId}`]: payload,
+  })
+  await recomputeAllUserScores()
+}
+
 export async function setLockBonusAt(timestamp: number): Promise<void> {
   await set(ref(db, 'meta/config/lockBonusAt'), timestamp)
 }
@@ -118,11 +148,15 @@ async function migrateLegacyBigGame(updates: Record<string, unknown>): Promise<v
   updates['meta/config/bigGame'] = null
 }
 
-/** Add or update a single big game (matchId -> multiplier). */
-export async function setBigGame(matchId: string, multiplier: number): Promise<void> {
-  if (!matchId || !Number.isFinite(multiplier) || multiplier <= 0) return
+/**
+ * Flag a single match as a big game. A big game now adds a flat +1 to the
+ * match's multiplier, so we just store a presence marker (1) rather than a
+ * configurable multiplier.
+ */
+export async function setBigGame(matchId: string): Promise<void> {
+  if (!matchId) return
   const updates: Record<string, unknown> = {
-    [`meta/config/bigGames/${matchId}`]: multiplier,
+    [`meta/config/bigGames/${matchId}`]: 1,
   }
   await migrateLegacyBigGame(updates)
   await update(ref(db), updates)
