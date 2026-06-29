@@ -35,6 +35,8 @@ const en = {
     pointsOverTime: 'Points over time',
     pointsStart: 'Start',
     showAll: 'Show all',
+    showAllGroups: 'All groups',
+    showMyGroup: 'My group',
     showPlayer: 'Show on chart',
     hidePlayer: 'Hide from chart',
     feedTitle: 'Recent points',

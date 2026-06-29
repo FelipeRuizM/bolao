@@ -4,7 +4,7 @@ import { Menu, User, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useT } from '@/i18n'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
-// import { ComplainButton } from '@/components/ComplainButton'
+import { ComplainButton } from '@/components/ComplainButton'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -107,8 +107,7 @@ export function Navbar() {
         </div>
       )}
 
-      {/* Hidden for now */}
-      {/* <ComplainButton /> */}
+      <ComplainButton />
     </nav>
   )
 }

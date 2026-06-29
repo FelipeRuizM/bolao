@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useMatches } from '@/hooks/useMatches'
 import { useBigGames } from '@/hooks/useMetaConfig'
 import { usePlayerPredictions } from '@/hooks/usePrediction'
-import { useUsers, displayNameFor } from '@/hooks/useUsers'
+import { useUsers, useAllUsers, displayNameFor } from '@/hooks/useUsers'
 import { useSync } from '@/hooks/useSync'
 import { MatchBreakdownCard, type BreakdownResult } from '@/components/MatchBreakdownCard'
 import { PlayerBonusPicks } from '@/components/PlayerBonusPicks'
@@ -22,10 +22,15 @@ interface Row {
 
 export function Player() {
   const { uid } = useParams<{ uid: string }>()
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const t = useT()
   useSync()
-  const users = useUsers()
+  // Admins can open any player's breakdown (the leaderboard's "all groups" view
+  // links across groups), so they read the full roster; everyone else stays
+  // scoped to their own group.
+  const groupUsers = useUsers()
+  const allUsers = useAllUsers()
+  const users = isAdmin ? allUsers : groupUsers
   const { matches } = useMatches()
   const bigGames = useBigGames()
   const predictions = usePlayerPredictions(uid, matches)
@@ -86,9 +91,9 @@ export function Player() {
   const bonusPts = score?.bonusPts ?? 0
   const isSelf = !!user && user.uid === uid
   const loading = matches === null || predictions === null
-  // `users` is filtered to the current group; once it has loaded (it always
-  // contains the viewer's own profile), a uid that's missing belongs to another
-  // group — don't render their breakdown.
+  // `users` is the viewer's group (or every user, for admins); once it has
+  // loaded (it always contains the viewer's own profile), a uid that's missing
+  // belongs to another group the viewer can't see — don't render their breakdown.
   const crossGroup = !isSelf && !!uid && Object.keys(users).length > 0 && !users[uid]
 
   if (crossGroup) {

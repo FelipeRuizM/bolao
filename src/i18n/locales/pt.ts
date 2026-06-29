@@ -37,6 +37,8 @@ const pt: typeof en = {
     pointsOverTime: 'Pontos ao longo do tempo',
     pointsStart: 'Início',
     showAll: 'Mostrar todos',
+    showAllGroups: 'Todos os grupos',
+    showMyGroup: 'Meu grupo',
     showPlayer: 'Mostrar no gráfico',
     hidePlayer: 'Ocultar do gráfico',
     feedTitle: 'Pontos recentes',

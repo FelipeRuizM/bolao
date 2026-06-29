@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { HelpCircle } from 'lucide-react'
+import { HelpCircle, Users } from 'lucide-react'
 import { onValue, ref } from 'firebase/database'
 import { db } from '@/firebase'
 import { useAuth } from '@/hooks/useAuth'
-import { useUsers } from '@/hooks/useUsers'
+import { useUsers, useAllUsers, groupOf } from '@/hooks/useUsers'
 import { useMatches } from '@/hooks/useMatches'
 import { useMyPredictions } from '@/hooks/usePrediction'
 import { usePrizePerUser } from '@/hooks/useMetaConfig'
@@ -21,6 +21,7 @@ interface LeaderboardRow {
   total: number
   isAdmin: boolean
   hidden: boolean
+  group: string
 }
 
 // Podium styling for the top three rows, blended straight into the leaderboard:
@@ -44,13 +45,19 @@ const MEDALS = [
 ] as const
 
 export function Home() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const t = useT()
   const prizePerUser = usePrizePerUser()
   useSync()
   // Users come pre-filtered to the current user's friend group, so the whole
   // leaderboard (and the prize/chart derived from it) stays group-scoped.
-  const users = useUsers()
+  const groupUsers = useUsers()
+  const allUsers = useAllUsers()
+  // Admin-only "show all" mode: drop the group filter so every friend group's
+  // players land in one combined leaderboard, each tagged with its group.
+  const [showAllGroups, setShowAllGroups] = useState(false)
+  const adminViewAll = isAdmin && showAllGroups
+  const users = adminViewAll ? allUsers : groupUsers
   const { matches } = useMatches()
   const myPredictions = useMyPredictions(user?.uid)
   const [scores, setScores] = useState<Record<string, UserScore> | null>(null)
@@ -84,6 +91,7 @@ export function Home() {
       total: scores[uid]?.total ?? 0,
       isAdmin: profile.role === 'admin',
       hidden: profile.hidden === true,
+      group: groupOf(profile),
     }))
     list.sort((a, b) => b.total - a.total)
     return list
@@ -103,7 +111,9 @@ export function Home() {
     () => rows?.filter((r) => !r.isAdmin).length ?? 0,
     [rows],
   )
-  const showPrize = payingCount > 0 && prizePerUser > 0
+  // The pot is per-group, so it's meaningless across a combined roster — hide
+  // the prize pills while an admin is viewing all groups at once.
+  const showPrize = payingCount > 0 && prizePerUser > 0 && !adminViewAll
   const prizeTotal = payingCount * prizePerUser
   const prizeSplit = splitPrize(prizeTotal)
   // Money each podium spot wins, indexed by rank (0 = 1st). Drives the pill on
@@ -122,6 +132,21 @@ export function Home() {
         >
           <HelpCircle size={20} />
         </Link>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setShowAllGroups((v) => !v)}
+            aria-pressed={showAllGroups}
+            className={`ml-auto shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+              showAllGroups
+                ? 'border-brand-500/40 bg-brand-500/15 text-brand-300'
+                : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+            }`}
+          >
+            <Users size={14} />
+            {showAllGroups ? t('home.showMyGroup') : t('home.showAllGroups')}
+          </button>
+        )}
       </div>
 
       {featured.length > 0 && (
@@ -170,6 +195,14 @@ export function Home() {
                     </span>
                     <span className="flex-1 truncate min-w-0 flex items-center gap-1.5">
                       <span className="truncate">{row.displayName}</span>
+                      {adminViewAll && (
+                        <span
+                          className="shrink-0 inline-flex items-center rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400"
+                          title={row.group}
+                        >
+                          {row.group}
+                        </span>
+                      )}
                       {isLast && (
                         <span
                           title={t('home.lastPlaceTitle')}
