@@ -1,11 +1,20 @@
 import { Link } from 'react-router-dom'
 import { Megaphone } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useAllUsers, groupOf } from '@/hooks/useUsers'
 import { useT } from '@/i18n'
 
 // 🤡 Troll feature: the floating "Reclame Aqui" button just sends you to the
-// full-screen image page (/reclame).
+// full-screen image page (/reclame). Hidden for the "simo" group.
+const HIDDEN_GROUPS = ['simo']
+
 export function ComplainButton() {
   const t = useT()
+  const { user } = useAuth()
+  const users = useAllUsers()
+
+  const group = user ? groupOf(users[user.uid]) : ''
+  if (HIDDEN_GROUPS.includes(group.toLowerCase())) return null
 
   return (
     <Link
