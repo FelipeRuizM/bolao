@@ -368,10 +368,6 @@ const pt: typeof en = {
     switchToEnglish: 'EN',
     switchToPortuguese: 'PT',
   },
-  complain: {
-    button: 'Reclame Aqui',
-    close: 'Fechar',
-  },
   teams: {
     Brazil: 'Brasil',
     Argentina: 'Argentina',

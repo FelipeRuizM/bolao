@@ -13,7 +13,6 @@ import { Player } from '@/pages/Player'
 import { Points } from '@/pages/Points'
 import { Profile } from '@/pages/Profile'
 import { Admin } from '@/pages/Admin'
-import { Reclame } from '@/pages/Reclame'
 
 export default function App() {
   return (
@@ -32,7 +31,6 @@ export default function App() {
             <Route path="/points" element={<ProtectedRoute><Points /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
-            <Route path="/reclame" element={<ProtectedRoute><Reclame /></ProtectedRoute>} />
           </Routes>
         </HashRouter>
       </AuthProvider>

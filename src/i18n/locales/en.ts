@@ -367,10 +367,6 @@ const en = {
     switchToEnglish: 'EN',
     switchToPortuguese: 'PT',
   },
-  complain: {
-    button: 'Complain here',
-    close: 'Close',
-  },
   teams: {
     Brazil: 'Brazil',
     Argentina: 'Argentina',

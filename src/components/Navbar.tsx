@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Menu, Megaphone, User, X } from 'lucide-react'
+import { Menu, User, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useT } from '@/i18n'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
-import { ComplainButton, useComplainEnabled } from '@/components/ComplainButton'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -14,7 +13,6 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Navbar() {
   const { status, isAdmin, signOutNow } = useAuth()
   const t = useT()
-  const complainEnabled = useComplainEnabled()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   if (status !== 'signed-in') return null
 
@@ -94,14 +92,6 @@ export function Navbar() {
             <NavLink to="/me" className={linkClass} onClick={closeMenu}>{t('nav.myPicks')}</NavLink>
             <NavLink to="/profile" className={linkClass} onClick={closeMenu}>{t('nav.profile')}</NavLink>
             {isAdmin && <NavLink to="/admin" className={linkClass} onClick={closeMenu}>{t('nav.admin')}</NavLink>}
-            {complainEnabled && (
-              <NavLink to="/reclame" className={linkClass} onClick={closeMenu}>
-                <span className="flex items-center gap-2">
-                  <Megaphone size={16} />
-                  {t('complain.button')}
-                </span>
-              </NavLink>
-            )}
             <div className="h-px bg-slate-800 my-2" />
             <div className="flex items-center justify-between px-2">
               <LocaleSwitcher compact />
@@ -115,8 +105,6 @@ export function Navbar() {
           </div>
         </div>
       )}
-
-      <ComplainButton />
     </nav>
   )
 }
