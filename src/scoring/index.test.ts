@@ -48,20 +48,20 @@ describe('multiplierFor', () => {
     expect(multiplierFor('group', 'Brazil', 'Serbia')).toBe(3)
   })
 
-  it('Brazil quarter-final = 5x (4 stage + 1 brazil knockout)', () => {
-    expect(multiplierFor('qf', 'Brazil', 'France')).toBe(5)
+  it('Brazil quarter-final = 6x (4 stage + 2 brazil knockout)', () => {
+    expect(multiplierFor('qf', 'Brazil', 'France')).toBe(6)
   })
 
-  it('Brazil final = 7x (6 stage + 1 brazil knockout)', () => {
-    expect(multiplierFor('final', 'Brazil', 'Argentina')).toBe(7)
+  it('Brazil final = 8x (6 stage + 2 brazil knockout)', () => {
+    expect(multiplierFor('final', 'Brazil', 'Argentina')).toBe(8)
   })
 
-  it('Brazil semi-final = 6x (5 stage + 1 brazil knockout)', () => {
-    expect(multiplierFor('sf', 'Brazil', 'Germany')).toBe(6)
+  it('Brazil semi-final = 7x (5 stage + 2 brazil knockout)', () => {
+    expect(multiplierFor('sf', 'Brazil', 'Germany')).toBe(7)
   })
 
-  it('Brazil round of 16 = 4x (3 stage + 1 brazil knockout)', () => {
-    expect(multiplierFor('r16', 'Brazil', 'Croatia')).toBe(4)
+  it('Brazil round of 16 = 5x (3 stage + 2 brazil knockout)', () => {
+    expect(multiplierFor('r16', 'Brazil', 'Croatia')).toBe(5)
   })
 
   it('Argentina vs Spain semi-final = 5x (no Brazil)', () => {
@@ -76,8 +76,8 @@ describe('multiplierFor', () => {
     expect(multiplierFor('r32', 'Spain', 'Morocco')).toBe(2)
   })
 
-  it('round of 32 with Brazil = 3x (2 stage + 1 brazil knockout)', () => {
-    expect(multiplierFor('r32', 'Brazil', 'Senegal')).toBe(3)
+  it('round of 32 with Brazil = 4x (2 stage + 2 brazil knockout)', () => {
+    expect(multiplierFor('r32', 'Brazil', 'Senegal')).toBe(4)
   })
 
   it('explicit stageMultipliers override beats the default table', () => {
@@ -191,7 +191,7 @@ describe('computePoints integration', () => {
     expect(r.total).toBe(5)
   })
 
-  it('exact score on Brazil final flagged as big game = 10 * (6 + 1 + 1) = 80', () => {
+  it('exact score on Brazil final flagged as big game = 10 * (6 + 2 + 1) = 90', () => {
     const r = computePoints({
       prediction: { home: 2, away: 1 },
       actual: { home: 2, away: 1 },
@@ -202,7 +202,7 @@ describe('computePoints integration', () => {
       bigGames: { 'final-match': 2 },
     })
     expect(r.tier).toBe('exact')
-    expect(r.multiplier).toBe(8)
-    expect(r.total).toBe(80)
+    expect(r.multiplier).toBe(9)
+    expect(r.total).toBe(90)
   })
 })

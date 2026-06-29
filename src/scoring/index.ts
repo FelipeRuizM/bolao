@@ -79,6 +79,8 @@ export const DEFAULT_STAGE_MULTIPLIERS: Record<Stage, number> = {
 export type StageMultipliers = Record<Stage, number>
 
 export const BRAZIL_MULTIPLIER = 3
+/** Brazil knockout games add this flat bonus to the stage multiplier. */
+export const BRAZIL_KNOCKOUT_BONUS = 2
 const BRAZIL_NAME = 'Brazil'
 
 export function isBrazilMatch(homeTeam: string, awayTeam: string): boolean {
@@ -173,9 +175,9 @@ export function multiplierFor(
   let mult = stageMultipliers[stage]
   // Brazil rule: group-stage games keep the legacy ×3 (so already-played group
   // scores don't shift), but from the knockouts on a Brazil match instead adds
-  // +1 to that round's multiplier — e.g. the 6× final becomes 7×.
+  // +2 to that round's multiplier — e.g. the 6× final becomes 8×.
   if (isBrazil) {
-    mult = stage === 'group' ? mult * BRAZIL_MULTIPLIER : mult + 1
+    mult = stage === 'group' ? mult * BRAZIL_MULTIPLIER : mult + BRAZIL_KNOCKOUT_BONUS
   }
   // A big game adds a flat +1 on top of everything else.
   if (isBigGame(options.matchId ?? '', options.bigGames)) {
