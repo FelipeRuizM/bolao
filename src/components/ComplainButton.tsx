@@ -8,22 +8,29 @@ import { useT } from '@/i18n'
 // full-screen image page (/reclame). Hidden for the "simo" group.
 const HIDDEN_GROUPS = ['simo']
 
-export function ComplainButton() {
-  const t = useT()
+/** Whether the current user's group is allowed to see the "Reclame Aqui" entry. */
+export function useComplainEnabled() {
   const { user } = useAuth()
   const users = useAllUsers()
-
   const group = user ? groupOf(users[user.uid]) : ''
-  if (HIDDEN_GROUPS.includes(group.toLowerCase())) return null
+  return !HIDDEN_GROUPS.includes(group.toLowerCase())
+}
 
+export function ComplainButton() {
+  const t = useT()
+  const enabled = useComplainEnabled()
+  if (!enabled) return null
+
+  // Floating button is desktop-only — on mobile it overlaps the hamburger menu,
+  // so the entry lives inside that menu instead (see Navbar).
   return (
     <Link
       to="/reclame"
       title={t('complain.button')}
-      className="fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-rose-900/40 transition-transform hover:scale-105 hover:bg-rose-500 active:scale-95"
+      className="hidden sm:flex fixed bottom-4 right-4 z-[60] items-center gap-2 rounded-full bg-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-rose-900/40 transition-transform hover:scale-105 hover:bg-rose-500 active:scale-95"
     >
       <Megaphone size={18} />
-      <span className="hidden sm:inline">{t('complain.button')}</span>
+      <span>{t('complain.button')}</span>
     </Link>
   )
 }
