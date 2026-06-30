@@ -13,3 +13,11 @@ body {
   font-family: 'Outfit', sans-serif;
   margin: 0;
 }
+
+/* Prevent iOS Safari from auto-zooming when focusing inputs.
+   iOS only zooms when the font-size is under 16px. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
